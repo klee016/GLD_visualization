@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>GLD indicators</title>
+    <!-- including ECharts file -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js" integrity="sha256-oZEaXgWqxLmr12VzCK9eGOuHIi3XPZ/KsJXXFjtyvZA=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha256-cMPWkL3FzjuaFSfEYESYmjF25hCIL6mfRSPnW8OVvM4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-multiselect@2.1.6/dist/vue-multiselect.min.js" integrity="sha256-wlV5NwZIO2I2LLLnqoAvxr5RMplF64uEMH67yvXzCRY=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha256-YvdLHPgkqJ8DVUxjjnGVlMMJtNimJ6dYkowFFvp4kKs=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-multiselect@2.1.6/dist/vue-multiselect.min.css" integrity="sha256-z2yEj00DOz/exljY7gOZL3Zw4pHEGcPY3UeiH97DRHE=" crossorigin="anonymous">
+
+</head>
+<body>
+
+<div id = 'main' class="container-fluid border" style="width:1000px;height:700px">
+    <!-- Title -->
+    <div class="row mt-2 mx-3 px-2">
+        <p class="fs-3 text-center">GLD indicator breakdowns - Education</p>
+    </div>
+    <!-- Main filters -->
+    <div class="row mx-2 px-2 py-2 border">
+        <!-- Indicator -->
+        <div class="col col-6 align-self-center">
+            <label>Indicator</label>
+            <select class="form-control mb-2" id="indicatorSelectBox" v-model="selectedIndicator" @change="onChange()">
+                <option v-for="indicator in indicatorList" :value="{code: indicator.code, label: indicator.label}">{{indicator.label}}</option>
+            </select>
+        </div>
+        <!-- Country -->
+        <div class="col col-6 align-self-center">
+            <label>Country - Admin division</label>
+            <select class="form-control mb-2" id="countryDivisionSelectBox" v-model="selectedCountryDivision" @change="onChange()">
+                <option v-for="countryDivision in countryDivisionList" :value="countryDivision">{{countryDivision}}</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="row">
+        <div class="col-12">
+            <div class="pt-3" id="chart" style="width:100%;height:530px"></div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    const defaultBaseUrl = "https://training.ihsn.org";
+    const color = ["#B1DDF1", "#A8B2D0", "#9F87AF", "#88527F", "#614344", "#332C23"];
+    // const color = ["#58C0A1", "#7593BB", "#EDA857", "#EAC34E", "#A374AD", "#A4CD89", "#DB5EAF", "#D98276", "#4AA8B3", "#F9A09A", "#EBD253", "#70A65A", "#33775E", "#C46F72", "#509592", "#5E4690", "#6EAF45", "#1E6896", "#27B0AE", "#048756", "#C1DDEB", "#629FCB", "#CAE9AD", "#6FBC6C", "#F9B9B7", "#EA5E5F", "#FFD19D", "#F38400", "#C6ADD5"];
+    let baseUrl = defaultBaseUrl;
+    let APIUrl;
+    let mainChart = null;
+    // let chartDatasets = [];
+
+    new Vue({
+        el: '#main',
+        components: {
+            Multiselect: window.VueMultiselect.default
+        },
+        data: {
+            indicatorList: [],
+            selectedIndicator: {code: "A_pop_tot", label: "Population total"},
+            sexList: [],
+            regionList: [],
+            ageList: [],
+            educationList: [],
+            countryList: [],
+            countryDivisionList: [],
+            selectedCountryDivision: '',
+            yearList: [],
+        },
+        async mounted() {
+            APIUrl = baseUrl + "/index.php/api/tables/";
+            await this.loadCodeLists();
+            this.renderChart();
+            await this.loadMainData();
+        },
+        methods: {
+            loadCodeLists: async function() {
+                let responseObjs = await Promise.all([dataFetch(APIUrl + "info/central/WLD_2022_GLD-indicators"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=country,admin_txt"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=year"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=sex"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=region"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=age"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=education")]);
+                this.indicatorList = responseObjs[0].result.result_.features.map(function(o) {return{code: o.feature_name, label: o.feature_label}}); 
+                this.indicatorList.splice(0, 7);
+                this.indicatorList = this.indicatorList.filter(o => o.label.endsWith(" total"));
+
+                this.countryDivisionList = responseObjs[1].data.map(o => o.country + " - " + o.admin_txt);
+                this.countryList = [...new Set(responseObjs[1].data.map(o => o.country))];
+                this.yearList = responseObjs[2].data.map(o => o.year);
+                this.sexList = responseObjs[3].data.map(o => o.sex);
+                this.regionList = responseObjs[4].data.map(o => o.region);
+                this.ageList = responseObjs[5].data.map(o => o.age);
+                this.educationList = responseObjs[6].data.map(o => o.education);
+                this.selectedCountryDivision = "PHL - All";
+            },
+
+            loadMainData: async function() {
+                let countryParam = this.selectedCountryDivision.split(" - ")[0];
+                let adminDivisionParam = this.selectedCountryDivision.split(" - ")[1];
+                let sexParams = this.sexList.join(',');
+                let regionParams = this.regionList.join(',');
+                let ageParams = this.ageList.join(',');
+                let educationParams = this.educationList.join(',');
+                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&admin_txt=" + adminDivisionParam + "&sex=" + sexParams + "&region=" + regionParams + "&age=" + ageParams + "&education=" + educationParams + "&fields=year,country,admin_txt,sex,region,age,education," + this.selectedIndicator.code);
+                let fullData = responseObj.data;
+                fullData.forEach(o => o.countryDivision = o.country + " - " + o.admin_txt);
+                fullData.forEach(o => o.value = o[this.selectedIndicator.code]);
+
+                this.yearList = [... new Set(fullData.map(o => o.year))];
+                let optionsList = [];
+                this.yearList.forEach(year => {
+                    let chartDataset = [];
+
+                    // level 1 - education
+                    this.educationList.filter(o => o !== 'All').forEach(education => {
+                        let educationBreakdown = fullData.find(o => o.year === year && o.sex === 'All' && o.region === 'All' && o.age === 'All' && o.education === education);
+                        let sexBreakdownChildren = [];
+
+                        // level 2 - sex
+                        this.sexList.filter(o => o !== 'All').forEach(sex => {
+                            let sexBreakdown = fullData.find(o => o.year === year && o.sex === sex && o.region === 'All' && o.age === 'All' && o.education === education);
+                            let regionBreakdownChildren = [];
+
+                            // level 3 - region
+                            this.regionList.filter(o => o !== 'All').forEach(region => {
+                                let regionBreakdown = fullData.find(o => o.year === year && o.sex === sex && o.region === region && o.age === 'All' && o.education === education);
+                                let ageBreakdownChildren = [];
+
+                                // level 4 - age
+                                this.ageList.filter(o => o !== 'All').forEach(age => {
+                                    let ageBreakdown = fullData.find(o => o.year === year && o.sex === sex && o.region === region && o.age === age && o.education === education);
+                                    ageBreakdownChildren.push({
+                                        value: (ageBreakdown === undefined)? null : ageBreakdown.value,
+                                        name: age,
+                                        path: education + '/' + sex + '/' + region + '/' + age,
+                                    })
+                                });
+                                
+                                regionBreakdownChildren.push({
+                                    value: (regionBreakdown === undefined)? null : regionBreakdown.value,
+                                    name: region,
+                                    path: education + '/' + sex + '/' + region,
+                                    children: ageBreakdownChildren
+                                });
+                            });
+                            
+                            sexBreakdownChildren.push({
+                                value: (sexBreakdown === undefined)? null : sexBreakdown.value,
+                                name: sex,
+                                path: education + '/' + sex,
+                                children: regionBreakdownChildren
+                            });
+                        });
+
+                        chartDataset.push({
+                            value: (educationBreakdown === undefined)? null : educationBreakdown.value,
+                            name: education,
+                            path: education,
+                            children: sexBreakdownChildren
+                        });
+                    });
+
+                    optionsList.push({
+                        title: {text: this.selectedIndicator.label + ' (' + year +  ')'},
+                        series: [
+                            {data: chartDataset}
+                        ]
+                    })
+                });
+
+
+
+
+
+
+
+
+                let chartTitle = this.selectedIndicator.label;
+                mainChart.clear();
+                this.renderChart();
+                mainChart.setOption({
+                    options: optionsList
+                });
+            },
+
+            onChange: async function() {
+                this.loadMainData();
+            },
+
+            renderChart: function() {
+                mainChart = echarts.init(document.getElementById('chart'));
+                option = {
+                    baseOption: {
+                        animation: true,
+                        timeline: {
+                            axisType: 'category',
+                            // realtime: false,
+                            // loop: false,
+                            autoPlay: true,
+                            // currentIndex: 2,
+                            playInterval: 1000,
+                            // controlStyle: {
+                            //     position: 'left'
+                            // },
+                            data: this.yearList,
+                        },
+                        dataset: [],
+                        color: color,
+                        title: [{
+                            id: 'main title',
+                            show: true,
+                            text: "",
+                            textStyle: {
+                                color: "#4d4d4d",
+                                fontSize: 16,
+                                lineHeight: 20
+                            },
+                            top: 0,
+                            x: "center"
+                        }],
+                        tooltip: {
+                            formatter: function (info) {
+                            var value = info.value;
+                            var treePathInfo = info.treePathInfo;
+                            var treePath = [];
+                            for (var i = 1; i < treePathInfo.length; i++) {
+                                treePath.push(treePathInfo[i].name);
+                            }
+                            return [
+                                '<div class="tooltip-title">' +
+                                echarts.format.encodeHTML(treePath.join('/')) +
+                                '</div>',
+                                'Value: ' + echarts.format.addCommas(value)
+                            ].join('');
+                            }
+                        },
+                        toolbox: {
+                            itemSize: 10,
+                            feature: {
+                                saveAsImage: {},
+                            },
+                            right: 5,
+                            top: 0,
+                        },
+                        // grid: {
+                        //     bottom: 200,
+                        //     left: '9%',
+                        //     top: 70,
+                        //     right: 20
+                        // },
+                        series: [
+                            {
+                                name: this.selectedIndicator.label,
+                                type: 'treemap',
+                                breadcrumb: {
+                                    show: false
+                                },
+                                visibleMin: 10,
+                                label: {
+                                    show: true,
+                                    formatter: '{b}'
+                                },
+                                upperLabel: {
+                                    show: true,
+                                    height: 30
+                                },
+                                itemStyle: {
+                                    borderColor: '#fff'
+                                },
+                                levels: [
+                                    {
+                                        itemStyle: {
+                                            borderColor: '#F8F9FA',
+                                            borderWidth: 5,
+                                            gapWidth: 5
+                                        },
+                                        upperLabel: {
+                                            show: true
+                                        }
+                                    },
+                                    {
+                                        itemStyle: {
+                                            borderColor: '#DEE2E6',
+                                            borderWidth: 5,
+                                            gapWidth: 5
+                                        },
+                                    },
+                                    {
+                                        itemStyle: {
+                                            borderColor: '#ADB5BD',
+                                            borderWidth: 5,
+                                            gapWidth: 5
+                                        }
+                                    },
+                                    {
+                                        colorSaturation: [0.25, 0.5],
+                                        itemStyle: {
+                                            borderWidth: 5,
+                                            gapWidth: 1,
+                                            borderColorSaturation: 0.6
+                                        }
+                                    }
+                                ],
+                                data: [],
+                            }
+                        ]
+                    }
+                };
+
+                mainChart.setOption(option);
+            }
+
+        }
+    })
+
+    async function dataFetch(dataUrl) {
+        let loadData = {};
+        await $.ajax({
+            url: dataUrl,
+            success: function(data) {
+                loadData = data;
+            },
+            error: function(error) {
+                console.log(error)
+            }
+        });
+        return loadData;
+    }
+
+    function customSort(items, key) {
+        items.sort(function(a, b) {
+            let nameA = (typeof a[key] === 'string') ? a[key].toUpperCase() : a[key];
+            let nameB = (typeof b[key] === 'string') ? b[key].toUpperCase() : b[key];
+            if (nameA < nameB) {
+                return -1;
+            }
+            if (nameA > nameB) {
+                return 1;
+            }
+            return 0;
+        });
+        return items;
+    }
+
+</script>
+</body>
+</html>

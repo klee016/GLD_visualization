@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Employment composition - special groups</title>
+    <!-- including ECharts file -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js" integrity="sha256-oZEaXgWqxLmr12VzCK9eGOuHIi3XPZ/KsJXXFjtyvZA=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha256-cMPWkL3FzjuaFSfEYESYmjF25hCIL6mfRSPnW8OVvM4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-multiselect@2.1.6/dist/vue-multiselect.min.js" integrity="sha256-wlV5NwZIO2I2LLLnqoAvxr5RMplF64uEMH67yvXzCRY=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha256-YvdLHPgkqJ8DVUxjjnGVlMMJtNimJ6dYkowFFvp4kKs=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-multiselect@2.1.6/dist/vue-multiselect.min.css" integrity="sha256-z2yEj00DOz/exljY7gOZL3Zw4pHEGcPY3UeiH97DRHE=" crossorigin="anonymous">
+
+</head>
+<body>
+
+<div id = 'main' class="container-fluid border" style="width:1000px;height:700px">
+    <!-- Title -->
+    <div class="row mt-2 mx-3 px-2">
+        <p class="fs-3 text-center">Employment composition - special groups</p>
+    </div>
+    <!-- Main filters -->
+    <div class="row mx-2 px-2 py-2 border">
+        <!-- Sex -->
+        <div class="col col-3 align-self-center">
+            <label>Sex</label>
+            <select class="form-control mb-2" id="sexSelectBox" v-model="selectedSex" @change="onChange()">
+                <option v-for="sex in sexList" :value="sex">{{sex}}</option>
+            </select>
+        </div>
+        <!-- Region -->
+        <div class="col col-3 align-self-center">
+            <label>Region</label>
+            <select class="form-control mb-2" id="regionSelectBox" v-model="selectedRegion" @change="onChange()">
+                <option v-for="region in regionList" :value="region">{{region}}</option>
+            </select>
+        </div>
+        <!-- Age -->
+        <div class="col col-3 align-self-center">
+            <label>Age</label>
+            <select class="form-control mb-2" id="ageSelectBox" v-model="selectedAge" @change="onChange()">
+                <option v-for="age in ageList" :value="age">{{age}}</option>
+            </select>
+        </div>
+        <!-- Education -->
+        <div class="col col-3 align-self-center">
+            <label>Education</label>
+            <select class="form-control mb-2" id="educationSelectBox" v-model="selectedEducation" @change="onChange()">
+                <option v-for="education in educationList" :value="education">{{education}}</option>
+            </select>
+        </div>
+        <!-- Country -->
+        <div class="align-self-center">Country - Admin division</div>
+        <div class="flex-grow-1 align-self-center mb-2">
+            <multiselect v-model="selectedCountryDivisions" :multiple="true" :max="4" :options="countryDivisionList" placeholder="Search" @select="onCountryDivisionSelect" @remove="onCountryDivisionRemove"></multiselect>
+        </div>
+    </div>
+
+
+    <!-- Chart -->
+    <div class="row">
+        <div class="col-12">
+            <div class="pt-3" id="chart" style="width:100%;height:465px"></div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    const defaultBaseUrl = "https://training.ihsn.org";
+    const color = ["#B1DDF1", "#A8B2D0", "#9F87AF", "#88527F", "#614344", "#332C23"];
+    // const color = ["#58C0A1", "#7593BB", "#EDA857", "#EAC34E", "#A374AD", "#A4CD89", "#DB5EAF", "#D98276", "#4AA8B3", "#F9A09A", "#EBD253", "#70A65A", "#33775E", "#C46F72", "#509592", "#5E4690", "#6EAF45", "#1E6896", "#27B0AE", "#048756", "#C1DDEB", "#629FCB", "#CAE9AD", "#6FBC6C", "#F9B9B7", "#EA5E5F", "#FFD19D", "#F38400", "#C6ADD5"];
+    let baseUrl = defaultBaseUrl;
+    let APIUrl;
+    let mainChart = null;
+    let chartDataset = [];
+    let chartSeries = [];
+    let chartCountryDivisions = [];
+    let grids = [];
+    let xAxis = [];
+    let yAxis = [];
+    let titles = [];
+
+    new Vue({
+        el: '#main',
+        components: {
+            Multiselect: window.VueMultiselect.default
+        },
+        data: {
+            sexList: [],
+            selectedSex: 'All',
+            regionList: [],
+            selectedRegion: 'All',
+            ageList: [],
+            selectedAge: 'All',
+            educationList: [],
+            selectedEducation: 'All',
+            countryList: [],
+            countryDivisionList: [],
+            selectedCountryDivisions: [],
+            yearList: [],
+        },
+        async mounted() {
+            APIUrl = baseUrl + "/index.php/api/tables/";
+            await this.loadCodeLists();
+            chartCountryDivisions = this.selectedCountryDivisions;
+            this.renderChart();
+            await this.loadMainData();
+        },
+        methods: {
+            loadCodeLists: async function() {
+                let responseObjs = await Promise.all([dataFetch(APIUrl + "info/central/WLD_2022_GLD-indicators"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=country,admin_txt"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=year"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=sex"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=region"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=age"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=education")]);
+                this.countryDivisionList = responseObjs[1].data.map(o => o.country + " - " + o.admin_txt);
+                this.countryList = [...new Set(responseObjs[1].data.map(o => o.country))];
+                this.yearList = responseObjs[2].data.map(o => o.year);
+                this.sexList = responseObjs[3].data.map(o => o.sex);
+                this.regionList = responseObjs[4].data.map(o => o.region);
+                this.ageList = responseObjs[5].data.map(o => o.age).filter(o => o!=='All');
+                this.ageList.unshift('All');
+                this.educationList = responseObjs[6].data.map(o => o.education);
+                this.selectedCountryDivisions = ["PHL - All"];
+            },
+
+            loadMainData: async function() {
+                let countryParams = chartCountryDivisions.map(o => o.split(" - ")[0]).join(",");
+                let adminDivisionParams = chartCountryDivisions.map(o => JSON.stringify(o.split(" - ")[1])).join(",");
+                if(countryParams === '') {
+                    countryParams = 'n/a';
+                    adminDivisionParams = 'n/a';
+                }
+                let indicatorParams = 'D_min_utl_shr,D_trd_tra_shr';
+                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParams + "&admin_txt=" + adminDivisionParams + "&sex=" + this.selectedSex + "&region=" + this.selectedRegion + "&age=" + this.selectedAge + "&education=" + this.selectedEducation + "&fields=year,country,admin_txt," + indicatorParams);
+                let fullData = responseObj.data;
+                this.yearList = [... new Set(fullData.map(o => o.year))];
+
+                // countryDivision
+                fullData.forEach(o => o.countryDivision = o.country + " - " + o.admin_txt);
+
+                // normalize
+                fullData.forEach(o => o.D_min_utl_shr = (o.D_min_utl_shr === "NA")? 0 : o.D_min_utl_shr);
+                fullData.forEach(o => o.D_trd_tra_shr = (o.D_trd_tra_shr === "NA")? 0 : o.D_trd_tra_shr);
+
+                // fill null data for empty years
+                this.yearList.forEach(year => {
+                    chartCountryDivisions.forEach(countryDivision => {
+                        if(fullData.filter(o => o.year === year && o.countryDivision === countryDivision).length === 0) {
+                            fullData.push(
+                                {
+                                    year: year,
+                                    countryDivision: countryDivision,
+                                    D_min_utl_shr: null,
+                                    D_trd_tra_shr: null
+                                }
+                            )
+                        }
+                    })
+                })
+
+                let noData = false;
+
+                if (fullData === null) {
+                    chartDataset = [];
+                    chartSeries = [];
+                    grids = [];
+                    xAxis = [];
+                    yAxis = [];
+                    titles = [];
+                    noData = true;
+                } else {
+                    chartDataset = [{
+                        id: 'dataset_full',
+                        source: customSort(fullData, 'year')
+                    }];
+                    chartSeries = [];
+                    grids = [];
+                    xAxis = [];
+                    yAxis = [];
+                    titles = [];
+
+                    let numCountryDivisions = chartCountryDivisions.length;
+                    chartCountryDivisions.forEach((countryDivision, i) => {
+                        let top = i*100/numCountryDivisions;
+                        grids.push(
+                            {
+                                id: i,
+                                top: top + 7 + '%',
+                                height: 460/numCountryDivisions - 90
+                            }
+                        );
+                        xAxis.push(
+                            {
+                                id: i,
+                                gridIndex: i,
+                                type: 'category'
+                            }
+                        );
+                        yAxis.push(
+                            {
+                                id: i,
+                                gridIndex: i,
+                                type: 'value',
+                            }
+                        );
+                        let chartTitle = countryDivision;                
+                        let subTitle = [];
+                        if(this.selectedSex !== 'All') subTitle.push(this.selectedSex);
+                        if(this.selectedRegion !== 'All') subTitle.push(this.selectedRegion);
+                        if(this.selectedAge !== 'All') subTitle.push(this.selectedAge);
+                        if(this.selectedEducation !== 'All') subTitle.push(this.selectedEducation);
+                        chartTitle = chartTitle + ((subTitle.length > 0)? ' ('+subTitle.join(', ')+')' : '');
+                        titles.push(
+                            {
+                                show: true,
+                                text: chartTitle,
+                                textStyle: {
+                                    color: "#4d4d4d",
+                                    fontSize: 16,
+                                    lineHeight: 20
+                                },
+                                top: top + '%',
+                                x: "center"
+                            }
+                        );
+                        chartDataset.push(
+                            {
+                                id: 'dataset_' + countryDivision,
+                                fromDatasetId: 'dataset_full',
+                                transform: {
+                                    type: 'filter',
+                                    config: {dimension: 'countryDivision', '=': countryDivision}
+                                }
+                            }
+                        );
+                        chartSeries.push(
+                            {
+                                name: 'Mining and Utilities',
+                                type: 'bar',
+                                stack: 'total' + i,
+                                datasetId: 'dataset_' + countryDivision,
+                                encode: {
+                                    x: 'year',
+                                    y: 'D_min_utl_shr'
+                                },
+                                xAxisIndex: i,
+                                yAxisIndex: i
+                            }
+                        );
+                        chartSeries.push(
+                            {
+                                name: 'Trade Services and Transport Services',
+                                type: 'bar',
+                                stack: 'total' + i,
+                                datasetId: 'dataset_' + countryDivision,
+                                encode: {
+                                    x: 'year',
+                                    y: 'D_trd_tra_shr'
+                                },
+                                xAxisIndex: i,
+                                yAxisIndex: i
+                            }
+                        );
+                    });
+                }
+
+                mainChart.clear()
+                this.renderChart()
+                mainChart.setOption({
+                    title: titles,
+                    legend: {
+                        data: ['Mining and Utilities','Trade Services and Transport Services'],
+                    },
+                    grid: grids,
+                    xAxis: xAxis,
+                    yAxis: yAxis,
+                    dataset: chartDataset,
+                    series: chartSeries
+                });
+            },
+
+            onCountryDivisionSelect: function(countryDivision) {
+                if(!chartCountryDivisions.includes(countryDivision)) {
+                    chartCountryDivisions = chartCountryDivisions.filter(o => o !== countryDivision)
+                    chartCountryDivisions.push(countryDivision);
+                }
+                this.loadMainData()
+            },
+
+            onCountryDivisionRemove: function(countryDivision) {
+                chartCountryDivisions = chartCountryDivisions.filter(o => o !== countryDivision)
+                this.loadMainData()
+            },
+
+            onChange: async function() {
+                this.loadMainData();
+            },
+
+            renderChart: function() {
+                mainChart = echarts.init(document.getElementById('chart'));
+                option = {
+                    dataset: [],
+                    color: color,
+                    tooltip: {
+                        trigger: 'axis',
+                        valueFormatter: function(value) {
+                            return (value === null) ? "N/A" : value.toFixed(2)
+                        },
+                    },
+                    legend: {
+                        data: [],
+                        x: 'center',
+                        bottom: 0,
+                        icon: 'roundRect',
+                        orient: 'horizontal',
+                    },
+                    toolbox: {
+                        itemSize: 10,
+                        feature: {
+                            saveAsImage: {},
+                        },
+                        right: 5,
+                        top: 0,
+                    },
+                };
+
+                mainChart.setOption(option);
+            }
+
+        }
+    })
+
+    async function dataFetch(dataUrl) {
+        let loadData = {};
+        await $.ajax({
+            url: dataUrl,
+            success: function(data) {
+                loadData = data;
+            },
+            error: function(error) {
+                console.log(error)
+            }
+        });
+        return loadData;
+    }
+
+    function customSort(items, key) {
+        items.sort(function(a, b) {
+            let nameA = (typeof a[key] === 'string') ? a[key].toUpperCase() : a[key];
+            let nameB = (typeof b[key] === 'string') ? b[key].toUpperCase() : b[key];
+            if (nameA < nameB) {
+                return -1;
+            }
+            if (nameA > nameB) {
+                return 1;
+            }
+            return 0;
+        });
+        return items;
+    }
+
+</script>
+</body>
+</html>
