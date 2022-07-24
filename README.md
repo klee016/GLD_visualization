@@ -22,7 +22,7 @@
 * [Stacked line chart - total](https://klee016.github.io/GLD_visualization/5.Employment_composition_line-chart.html)
 
 ## 6. Employment composition - special groups
-* [Stacked bar chart - share](6.Employment_composition_special_groups_bar-chart.html)
+* [Stacked bar chart - share](https://klee016.github.io/GLD_visualization/6.Employment_composition_special_groups_bar-chart.html)
 
 ## 7. Employment composition - 4 employment statuses
 * [Stacked bar chart - share](https://klee016.github.io/GLD_visualization/7.Employment_composition_4_statuses_bar-chart.html)
