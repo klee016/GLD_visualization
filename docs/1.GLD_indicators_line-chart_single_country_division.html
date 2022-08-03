@@ -26,7 +26,7 @@
         <div class="col col-4 align-self-center">
             <label>Indicator</label>
             <div class="align-self-center mb-2">
-                <multiselect v-model="selectedIndicator" :multiple="false" label="label" track-by="label" :options="indicatorList" placeholder="Select" @select="onIndicatorChange"></multiselect>
+                <multiselect v-model="selectedIndicator" :multiple="false" label="label" track-by="label" :options="indicatorList" placeholder="Search" @select="onIndicatorChange"></multiselect>
             </div>
         </div>
         <!-- Country -->
@@ -67,7 +67,6 @@
     let mainChart = null;
     let chartDataset = [];
     let chartSeries = [];
-    let chartCountryDivisions = [];
     let chartDisaggregations = [];
 
     new Vue({
@@ -135,8 +134,6 @@
                 fullData.forEach(o => o.sampleRatio = o[this.selectedIndicator.code]);
                 let noData = false;
 
-                chartCountryDivisions = [];
-                chartCountryDivisions.push(this.selectedCountryDivision);
                 chartDisaggregations = [];
                 chartDisaggregations = cartesian(sexParams, regionParams, ageParams, educationParams);
 
@@ -183,7 +180,7 @@
                     });
                 }
                 
-                let chartTitle = this.selectedIndicator.label;                
+                let chartTitle = this.selectedIndicator.label + ', ' + this.selectedCountryDivision;           
                 let legend = [];
                 chartDisaggregations.forEach(chartDisaggregation => {
                     legend.push(chartDisaggregation.filter(o => o !== 'All').join(','));

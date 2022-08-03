@@ -25,9 +25,9 @@
         <!-- Indicator -->
         <div class="col col-4 align-self-center">
             <label>Indicator</label>
-            <select class="form-control mb-2" id="indicatorSelectBox" v-model="selectedIndicator" @change="onChange()">
-                <option v-for="indicator in indicatorList" :value="{code: indicator.code, label: indicator.label}">{{indicator.label}}</option>
-            </select>
+            <div class="align-self-center mb-2">
+                <multiselect v-model="selectedIndicator" :multiple="false" label="label" track-by="label" :options="indicatorList" placeholder="Search" @select="onIndicatorChange"></multiselect>
+            </div>
         </div>
         <!-- Sex -->
         <div class="col col-2 align-self-center">
@@ -216,6 +216,11 @@
                     dataset: chartDataset,
                     series: chartSeries
                 });
+            },
+
+            onIndicatorChange: async function(selectedOption) {
+                this.selectedIndicator = selectedOption;
+                this.loadMainData();
             },
 
             onCountryDivisionSelect: function(countryDivision) {

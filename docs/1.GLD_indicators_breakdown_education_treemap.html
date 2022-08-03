@@ -25,16 +25,16 @@
         <!-- Indicator -->
         <div class="col col-6 align-self-center">
             <label>Indicator</label>
-            <select class="form-control mb-2" id="indicatorSelectBox" v-model="selectedIndicator" @change="onChange()">
-                <option v-for="indicator in indicatorList" :value="{code: indicator.code, label: indicator.label}">{{indicator.label}}</option>
-            </select>
+            <div class="align-self-center mb-2">
+                <multiselect v-model="selectedIndicator" :multiple="false" label="label" track-by="label" :options="indicatorList" placeholder="Search" @select="onIndicatorChange"></multiselect>
+            </div>
         </div>
         <!-- Country -->
         <div class="col col-6 align-self-center">
             <label>Country - Admin division</label>
-            <select class="form-control mb-2" id="countryDivisionSelectBox" v-model="selectedCountryDivision" @change="onChange()">
-                <option v-for="countryDivision in countryDivisionList" :value="countryDivision">{{countryDivision}}</option>
-            </select>
+            <div class="align-self-center mb-2">
+                <multiselect v-model="selectedCountryDivision" :multiple="false" :options="countryDivisionList" placeholder="Search" @select="onCountryDivisionChange"></multiselect>
+            </div>
         </div>
     </div>
 
@@ -170,26 +170,28 @@
                     });
 
                     optionsList.push({
-                        title: {text: this.selectedIndicator.label + ' (' + year +  ')'},
+                        title: {text: this.selectedIndicator.label + ', ' + this.selectedCountryDivision + ' (' + year +  ')'},
                         series: [
                             {data: chartDataset}
                         ]
                     })
                 });
 
-
-
-
-
-
-
-
-                let chartTitle = this.selectedIndicator.label;
                 mainChart.clear();
                 this.renderChart();
                 mainChart.setOption({
                     options: optionsList
                 });
+            },
+
+            onIndicatorChange: async function(selectedOption) {
+                this.selectedIndicator = selectedOption;
+                this.loadMainData();
+            },
+
+            onCountryDivisionChange: async function(selectedOption) {
+                this.selectedCountryDivision = selectedOption;
+                this.loadMainData();
             },
 
             onChange: async function() {
