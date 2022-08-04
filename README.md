@@ -11,6 +11,7 @@
 * [Treemap - education](https://klee016.github.io/GLD_visualization/1.GLD_indicators_breakdown_education_treemap.html)
 
 ## 2. Labour market composition
+* [Stacked bar/line chart - long](https://klee016.github.io/GLD_visualization/2.Labour_market_composition_bar-line-chart_long.html)
 * [Stacked bar chart - share](https://klee016.github.io/GLD_visualization/2.Labour_market_composition_bar-chart.html)
 * [Stacked line chart - total](https://klee016.github.io/GLD_visualization/2.Labour_market_composition_line-chart.html)
 
