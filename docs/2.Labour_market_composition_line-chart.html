@@ -51,9 +51,9 @@
             </select>
         </div>
         <!-- Country -->
-        <div class="align-self-center">Country - Admin division</div>
         <div class="flex-grow-1 align-self-center mb-2">
-            <multiselect v-model="selectedCountryDivisions" :multiple="true" :max="4" :options="countryDivisionList" placeholder="Search" @select="onCountryDivisionSelect" @remove="onCountryDivisionRemove"></multiselect>
+            <label>Country - Admin division</label>
+            <multiselect v-model="selectedCountryDivisions" :multiple="true" :max="4" :allow-empty="false" :options="countryDivisionList" placeholder="Search" @select="onCountryDivisionSelect" @remove="onCountryDivisionRemove"></multiselect>
         </div>
     </div>
 
@@ -242,7 +242,7 @@
                         );
                         chartSeries.push(
                             {
-                                name: 'Employment rate',
+                                name: 'Employment total',
                                 type: 'line',
                                 smooth: true,
                                 areaStyle: {},
@@ -258,7 +258,7 @@
                         );
                         chartSeries.push(
                             {
-                                name: 'Unemployment rate',
+                                name: 'Unemployment total',
                                 type: 'line',
                                 smooth: true,
                                 areaStyle: {},
@@ -274,7 +274,7 @@
                         );
                         chartSeries.push(
                             {
-                                name: 'Not in labor force share',
+                                name: 'Not in labor force total',
                                 type: 'line',
                                 smooth: true,
                                 areaStyle: {},
@@ -331,7 +331,7 @@
                     tooltip: {
                         trigger: 'axis',
                         valueFormatter: function(value) {
-                            return (value === null) ? "N/A" : value.toFixed(2)
+                            return (value === null) ? "N/A" : value.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})
                         },
                     },
                     legend: {

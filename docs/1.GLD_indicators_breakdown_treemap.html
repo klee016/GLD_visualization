@@ -158,6 +158,8 @@
                 let optionsList = [];
                 this.yearList.forEach(year => {
                     let chartDataset = [];
+                    let totalValue = fullData.find(o => o.year === year && o.sex === 'Male' && o.region === 'All' && o.age === 'All' && o.education === 'Primary').value;
+                    console.log(totalValue)
 
                     // level 1
                     breakdowns[this.selectedBreakdown1].filter(o => o !== 'All').forEach(breakdown1 => {
@@ -216,58 +218,6 @@
                         }
                     })
                     
-
-
-
-                    // // level 1 - age
-                    // this.ageList.filter(o => o !== 'All').forEach(age => {
-                    //     let ageBreakdown = fullData.find(o => o.year === year && o.sex === 'All' && o.region === 'All' && o.age === age && o.education === 'All');
-                    //     let sexBreakdownChildren = [];
-
-                    //     // level 2 - sex
-                    //     this.sexList.filter(o => o !== 'All').forEach(sex => {
-                    //         let sexBreakdown = fullData.find(o => o.year === year && o.sex === sex && o.region === 'All' && o.age === age && o.education === 'All');
-                    //         let regionBreakdownChildren = [];
-
-                    //         // level 3 - region
-                    //         this.regionList.filter(o => o !== 'All').forEach(region => {
-                    //             let regionBreakdown = fullData.find(o => o.year === year && o.sex === sex && o.region === region && o.age === age && o.education === 'All');
-                    //             let educationBreakdownChildren = [];
-
-                    //             // level 4 - education
-                    //             this.educationList.filter(o => o !== 'All').forEach(education => {
-                    //                 let educationBreakdown = fullData.find(o => o.year === year && o.sex === sex && o.region === region && o.age === age && o.education === education);
-                    //                 educationBreakdownChildren.push({
-                    //                     value: (educationBreakdown === undefined)? null : educationBreakdown.value,
-                    //                     name: education,
-                    //                     path: age + '/' + sex + '/' + region + '/' + education,
-                    //                 })
-                    //             });
-                                
-                    //             regionBreakdownChildren.push({
-                    //                 value: (regionBreakdown === undefined)? null : regionBreakdown.value,
-                    //                 name: region,
-                    //                 path: age + '/' + sex + '/' + region,
-                    //                 children: educationBreakdownChildren
-                    //             });
-                    //         });
-                            
-                    //         sexBreakdownChildren.push({
-                    //             value: (sexBreakdown === undefined)? null : sexBreakdown.value,
-                    //             name: sex,
-                    //             path: age + '/' + sex,
-                    //             children: regionBreakdownChildren
-                    //         });
-                    //     });
-
-                    //     chartDataset.push({
-                    //         value: (ageBreakdown === undefined)? null : ageBreakdown.value,
-                    //         name: age,
-                    //         path: age,
-                    //         children: sexBreakdownChildren
-                    //     });
-                    // });
-
                     optionsList.push({
                         title: {text: this.selectedIndicator.label + ', ' + this.selectedCountryDivision + ' (' + year +  ')'},
                         series: [
@@ -401,7 +351,8 @@
                                 top: 30,
                                 label: {
                                     show: true,
-                                    formatter: '{b}'
+                                    formatter: '{b}',
+                                    fontSize: 15,
                                 },
                                 upperLabel: {
                                     show: false,
@@ -418,7 +369,7 @@
                                             gapWidth: 1
                                         },
                                         upperLabel: {
-                                            show: false
+                                            show: true
                                         }
                                     },
                                     {
