@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Employment composition - 6 employment statuses</title>
+    <title>Employment industry composition</title>
     <!-- including ECharts file -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js" integrity="sha256-oZEaXgWqxLmr12VzCK9eGOuHIi3XPZ/KsJXXFjtyvZA=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -18,7 +18,7 @@
 <div id = 'main' class="container-fluid border" style="width:1000px;height:1000px">
     <!-- Title -->
     <div class="row mt-2 mx-3 px-2">
-        <p class="fs-3 text-center">Employment composition by 6 employment status</p>
+        <p class="fs-3 text-center">Employment industry composition</p>
     </div>
     <!-- Main filters -->
     <div class="row mx-2 px-2 py-2 border">
@@ -147,8 +147,9 @@
                 let regionParams = chartRegions.join(',');
                 let ageParams = chartAges.join(',');
                 let educationParams = chartEducations.join(',');
-                let indicatorParams = (this.selectedNumberType === 'share')? "E_wage_agr_shr,E_wage_ind_shr,E_wage_ser_shr,E_self_shr,E_emps_shr,E_unpaid_shr" : "E_wage_agr_tot,E_wage_ind_tot,E_wage_ser_tot,E_self_tot,E_emps_tot,E_unpaid_tot";
+                let indicatorParams = (this.selectedNumberType === 'share')? "D_agr_shr,D_min_shr,D_man_shr,D_utl_shr,D_ctr_shr,D_trd_shr,D_tra_shr,D_bus_shr,D_gov_shr,D_oth_shr" : "D_agr_tot,D_min_tot,D_man_tot,D_utl_tot,D_ctr_tot,D_trd_tot,D_tra_tot,D_bus_tot,D_gov_tot,D_oth_tot";
                 let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParams + "&admin_txt=" + adminDivisionParams + "&sex=" + sexParams + "&region=" + regionParams + "&age=" + ageParams + "&education=" + educationParams + "&fields=year,country,admin_txt,sex,region,age,education," + indicatorParams);
+
                 let fullData = responseObj.data;
                 this.yearList = [... new Set(fullData.map(o => o.year))];
 
@@ -160,26 +161,38 @@
 
                 // normalize
                 if(this.selectedNumberType === 'share') {
-                    fullData.forEach(o => o.E_wage_agr = (o.E_wage_agr_shr === "NA")? 0 : o.E_wage_agr_shr);
-                    fullData.forEach(o => o.E_wage_ind = (o.E_wage_ind_shr === "NA")? 0 : o.E_wage_ind_shr);
-                    fullData.forEach(o => o.E_wage_ser = (o.E_wage_ser_shr === "NA")? 0 : o.E_wage_ser_shr);
-                    fullData.forEach(o => o.E_self = (o.E_self_shr === "NA")? 0 : o.E_self_shr);
-                    fullData.forEach(o => o.E_emps = (o.E_emps_shr === "NA")? 0 : o.E_emps_shr);
-                    fullData.forEach(o => o.E_unpaid = (o.E_unpaid_shr === "NA")? 0 : o.E_unpaid_shr);
-                    fullData.forEach(o => o.sum = o.E_wage_agr + o.E_wage_ind + o.E_wage_ser + o.E_self + o.E_emps + o.E_unpaid);
-                    fullData.forEach(o => o.E_wage_agr = o.E_wage_agr/o.sum);
-                    fullData.forEach(o => o.E_wage_ind = o.E_wage_ind/o.sum);
-                    fullData.forEach(o => o.E_wage_ser = o.E_wage_ser/o.sum);
-                    fullData.forEach(o => o.E_self = o.E_self/o.sum);
-                    fullData.forEach(o => o.E_emps = o.E_emps/o.sum);
-                    fullData.forEach(o => o.E_unpaid = o.E_unpaid/o.sum);
+                    fullData.forEach(o => o.D_agr = (o.D_agr_shr === "NA")? 0 : o.D_agr_shr);
+                    fullData.forEach(o => o.D_min = (o.D_min_shr === "NA")? 0 : o.D_min_shr);
+                    fullData.forEach(o => o.D_man = (o.D_man_shr === "NA")? 0 : o.D_man_shr);
+                    fullData.forEach(o => o.D_utl = (o.D_utl_shr === "NA")? 0 : o.D_utl_shr);
+                    fullData.forEach(o => o.D_ctr = (o.D_ctr_shr === "NA")? 0 : o.D_ctr_shr);
+                    fullData.forEach(o => o.D_trd = (o.D_trd_shr === "NA")? 0 : o.D_trd_shr);
+                    fullData.forEach(o => o.D_tra = (o.D_tra_shr === "NA")? 0 : o.D_tra_shr);
+                    fullData.forEach(o => o.D_bus = (o.D_bus_shr === "NA")? 0 : o.D_bus_shr);
+                    fullData.forEach(o => o.D_gov = (o.D_gov_shr === "NA")? 0 : o.D_gov_shr);
+                    fullData.forEach(o => o.D_oth = (o.D_oth_shr === "NA")? 0 : o.D_oth_shr);
+                    fullData.forEach(o => o.sum = o.D_agr + o.D_min + o.D_man + o.D_utl + o.D_ctr + o.D_trd + o.D_tra + o.D_bus + o.D_gov + o.D_oth);
+                    fullData.forEach(o => o.D_agr = o.D_agr/o.sum);
+                    fullData.forEach(o => o.D_min = o.D_min/o.sum);
+                    fullData.forEach(o => o.D_man = o.D_man/o.sum);
+                    fullData.forEach(o => o.D_utl = o.D_utl/o.sum);
+                    fullData.forEach(o => o.D_ctr = o.D_ctr/o.sum);
+                    fullData.forEach(o => o.D_trd = o.D_trd/o.sum);
+                    fullData.forEach(o => o.D_tra = o.D_tra/o.sum);
+                    fullData.forEach(o => o.D_bus = o.D_bus/o.sum);
+                    fullData.forEach(o => o.D_gov = o.D_gov/o.sum);
+                    fullData.forEach(o => o.D_oth = o.D_oth/o.sum);
                 } else {
-                    fullData.forEach(o => o.E_wage_agr = (o.E_wage_agr_tot === "NA")? 0 : o.E_wage_agr_tot);
-                    fullData.forEach(o => o.E_wage_ind = (o.E_wage_ind_tot === "NA")? 0 : o.E_wage_ind_tot);
-                    fullData.forEach(o => o.E_wage_ser = (o.E_wage_ser_tot === "NA")? 0 : o.E_wage_ser_tot);
-                    fullData.forEach(o => o.E_self = (o.E_self_tot === "NA")? 0 : o.E_self_tot);
-                    fullData.forEach(o => o.E_emps = (o.E_emps_tot === "NA")? 0 : o.E_emps_tot);
-                    fullData.forEach(o => o.E_unpaid = (o.E_unpaid_tot === "NA")? 0 : o.E_unpaid_tot);
+                    fullData.forEach(o => o.D_agr = (o.D_agr_tot === "NA")? 0 : o.D_agr_tot);
+                    fullData.forEach(o => o.D_min = (o.D_min_tot === "NA")? 0 : o.D_min_tot);
+                    fullData.forEach(o => o.D_man = (o.D_man_tot === "NA")? 0 : o.D_man_tot);
+                    fullData.forEach(o => o.D_utl = (o.D_utl_tot === "NA")? 0 : o.D_utl_tot);
+                    fullData.forEach(o => o.D_ctr = (o.D_ctr_tot === "NA")? 0 : o.D_ctr_tot);
+                    fullData.forEach(o => o.D_trd = (o.D_trd_tot === "NA")? 0 : o.D_trd_tot);
+                    fullData.forEach(o => o.D_tra = (o.D_tra_tot === "NA")? 0 : o.D_tra_tot);
+                    fullData.forEach(o => o.D_bus = (o.D_bus_tot === "NA")? 0 : o.D_bus_tot);
+                    fullData.forEach(o => o.D_gov = (o.D_gov_tot === "NA")? 0 : o.D_gov_tot);
+                    fullData.forEach(o => o.D_oth = (o.D_oth_tot === "NA")? 0 : o.D_oth_tot);
                 }
 
                 // fill null data for empty years
@@ -199,12 +212,16 @@
                                                     age: age,
                                                     education: education,
                                                     disaggregation: countryDivision + ',' + sex + ',' + region + ',' + age + ',' + education,
-                                                    E_wage_agr: null,
-                                                    E_wage_ind: null,
-                                                    E_wage_ser: null,
-                                                    E_self: null,
-                                                    E_emps: null,
-                                                    E_unpaid: null
+                                                    D_agr: null,
+                                                    D_min: null,
+                                                    D_man: null,
+                                                    D_utl: null,
+                                                    D_ctr: null,
+                                                    D_trd: null,
+                                                    D_tra: null,
+                                                    D_bus: null,
+                                                    D_gov: null,
+                                                    D_oth: null,
                                                 }
                                             )
                                         }
@@ -238,7 +255,7 @@
                                 id: i,
                                 top: top + 5 + '%',
                                 right: 50,
-                                height: chartHeight/numFacets - 90
+                                height: chartHeight/numFacets - 100
                             }
                         );
                         xAxis.push(
@@ -282,7 +299,7 @@
                         );
                         chartSeries.push(
                             {
-                                name: 'Wage emp. in agriculture',
+                                name: 'Agriculture',
                                 type: (this.selectedNumberType === 'share')? 'bar' : 'line',
                                 smooth: true,
                                 areaStyle: {},
@@ -290,7 +307,7 @@
                                 datasetId: 'dataset_' + disaggregation,
                                 encode: {
                                     x: 'year',
-                                    y: 'E_wage_agr'
+                                    y: 'D_agr'
                                 },
                                 xAxisIndex: i,
                                 yAxisIndex: i
@@ -298,7 +315,7 @@
                         );
                         chartSeries.push(
                             {
-                                name: 'Wage emp. in industry',
+                                name: 'Mining',
                                 type: (this.selectedNumberType === 'share')? 'bar' : 'line',
                                 smooth: true,
                                 areaStyle: {},
@@ -306,7 +323,7 @@
                                 datasetId: 'dataset_' + disaggregation,
                                 encode: {
                                     x: 'year',
-                                    y: 'E_wage_ind'
+                                    y: 'D_min'
                                 },
                                 xAxisIndex: i,
                                 yAxisIndex: i
@@ -314,7 +331,7 @@
                         );
                         chartSeries.push(
                             {
-                                name: 'Wage emp. in services',
+                                name: 'Manufacturing',
                                 type: (this.selectedNumberType === 'share')? 'bar' : 'line',
                                 smooth: true,
                                 areaStyle: {},
@@ -322,7 +339,7 @@
                                 datasetId: 'dataset_' + disaggregation,
                                 encode: {
                                     x: 'year',
-                                    y: 'E_wage_ser'
+                                    y: 'D_man'
                                 },
                                 xAxisIndex: i,
                                 yAxisIndex: i
@@ -330,7 +347,7 @@
                         );
                         chartSeries.push(
                             {
-                                name: 'Self employed',
+                                name: 'Public utilities',
                                 type: (this.selectedNumberType === 'share')? 'bar' : 'line',
                                 smooth: true,
                                 areaStyle: {},
@@ -338,7 +355,7 @@
                                 datasetId: 'dataset_' + disaggregation,
                                 encode: {
                                     x: 'year',
-                                    y: 'E_self'
+                                    y: 'D_utl'
                                 },
                                 xAxisIndex: i,
                                 yAxisIndex: i
@@ -346,7 +363,7 @@
                         );
                         chartSeries.push(
                             {
-                                name: 'Employer employment',
+                                name: 'Construction',
                                 type: (this.selectedNumberType === 'share')? 'bar' : 'line',
                                 smooth: true,
                                 areaStyle: {},
@@ -354,7 +371,7 @@
                                 datasetId: 'dataset_' + disaggregation,
                                 encode: {
                                     x: 'year',
-                                    y: 'E_emps',
+                                    y: 'D_ctr',
                                 },
                                 xAxisIndex: i,
                                 yAxisIndex: i
@@ -362,7 +379,7 @@
                         );
                         chartSeries.push(
                             {
-                                name: 'Unpaid employment',
+                                name: 'Commerce',
                                 type: (this.selectedNumberType === 'share')? 'bar' : 'line',
                                 smooth: true,
                                 areaStyle: {},
@@ -370,7 +387,71 @@
                                 datasetId: 'dataset_' + disaggregation,
                                 encode: {
                                     x: 'year',
-                                    y: 'E_unpaid',
+                                    y: 'D_trd',
+                                },
+                                xAxisIndex: i,
+                                yAxisIndex: i
+                            }
+                        );
+                        chartSeries.push(
+                            {
+                                name: 'Transport and Communications',
+                                type: (this.selectedNumberType === 'share')? 'bar' : 'line',
+                                smooth: true,
+                                areaStyle: {},
+                                stack: 'total' + i,
+                                datasetId: 'dataset_' + disaggregation,
+                                encode: {
+                                    x: 'year',
+                                    y: 'D_tra',
+                                },
+                                xAxisIndex: i,
+                                yAxisIndex: i
+                            }
+                        );
+                        chartSeries.push(
+                            {
+                                name: 'Financial and Business Services',
+                                type: (this.selectedNumberType === 'share')? 'bar' : 'line',
+                                smooth: true,
+                                areaStyle: {},
+                                stack: 'total' + i,
+                                datasetId: 'dataset_' + disaggregation,
+                                encode: {
+                                    x: 'year',
+                                    y: 'D_bus',
+                                },
+                                xAxisIndex: i,
+                                yAxisIndex: i
+                            }
+                        );
+                        chartSeries.push(
+                            {
+                                name: 'Public Administration',
+                                type: (this.selectedNumberType === 'share')? 'bar' : 'line',
+                                smooth: true,
+                                areaStyle: {},
+                                stack: 'total' + i,
+                                datasetId: 'dataset_' + disaggregation,
+                                encode: {
+                                    x: 'year',
+                                    y: 'D_gov',
+                                },
+                                xAxisIndex: i,
+                                yAxisIndex: i
+                            }
+                        );
+                        chartSeries.push(
+                            {
+                                name: 'Other Services, Unspecified',
+                                type: (this.selectedNumberType === 'share')? 'bar' : 'line',
+                                smooth: true,
+                                areaStyle: {},
+                                stack: 'total' + i,
+                                datasetId: 'dataset_' + disaggregation,
+                                encode: {
+                                    x: 'year',
+                                    y: 'D_oth',
                                 },
                                 xAxisIndex: i,
                                 yAxisIndex: i
@@ -384,7 +465,7 @@
                 mainChart.setOption({
                     title: titles,
                     legend: {
-                        data: ['Wage emp. in agriculture','Wage emp. in industry','Wage emp. in services','Self employed','Employer employment','Unpaid employment'],
+                        data: ['Agriculture', 'Mining', 'Manufacturing', 'Public utilities', 'Construction', 'Commerce', 'Transport and Communications', 'Financial and Business Services', 'Public Administration', 'Other Services, Unspecified'],
                     },
                     grid: grids,
                     xAxis: xAxis,
@@ -516,6 +597,7 @@
                         data: [],
                         x: 'center',
                         bottom: 0,
+                        padding: [0, 5],
                         icon: 'roundRect',
                         orient: 'horizontal',
                     },
