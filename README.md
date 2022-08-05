@@ -35,6 +35,7 @@
 * [Stacked line chart - total](https://klee016.github.io/GLD_visualization/7.Employment_composition_4_statuses_line-chart.html)
 
 ## 8. Employment composition - 6 employment statuses
+* [Stacked bar/line chart (long screen)](https://klee016.github.io/GLD_visualization/8.Employment_composition_6_statuses_bar-line-chart_long.html)
 * [Stacked bar chart - share](https://klee016.github.io/GLD_visualization/8.Employment_composition_6_statuses_bar-chart.html)
 * [Stacked line chart - total](https://klee016.github.io/GLD_visualization/8.Employment_composition_6_statuses_line-chart.html)
 
