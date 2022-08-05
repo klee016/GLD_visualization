@@ -2,7 +2,7 @@
 
 ## 1. GLD indicators
 * [Line chart - single country/division](https://klee016.github.io/GLD_visualization/1.GLD_indicators_line-chart_single_country_division.html)
-* [Line chart - side-by-side comparison](https://klee016.github.io/GLD_visualization/1.GLD_indicators_line-chart_side_by_side_comparison.html)
+* [Line chart - side-by-side comparison (wide screen)](https://klee016.github.io/GLD_visualization/1.GLD_indicators_line-chart_side_by_side_comparison.html)
 * [Line chart - multiple countries/divisions](https://klee016.github.io/GLD_visualization/1.GLD_indicators_line-chart_multiple_country_division.html)
 * [Treemap - multiple disaggregation](https://klee016.github.io/GLD_visualization/1.GLD_indicators_breakdown_treemap.html)
 * [Treemap - sex](https://klee016.github.io/GLD_visualization/1.GLD_indicators_breakdown_sex_treemap.html)
@@ -11,7 +11,7 @@
 * [Treemap - education](https://klee016.github.io/GLD_visualization/1.GLD_indicators_breakdown_education_treemap.html)
 
 ## 2. Labour market composition
-* [Stacked bar/line chart - long](https://klee016.github.io/GLD_visualization/2.Labour_market_composition_bar-line-chart_long.html)
+* [Stacked bar/line chart (long screen)](https://klee016.github.io/GLD_visualization/2.Labour_market_composition_bar-line-chart_long.html)
 * [Stacked bar chart - share](https://klee016.github.io/GLD_visualization/2.Labour_market_composition_bar-chart.html)
 * [Stacked line chart - total](https://klee016.github.io/GLD_visualization/2.Labour_market_composition_line-chart.html)
 
