@@ -4,7 +4,7 @@
 * [Line chart - single country/division](https://klee016.github.io/GLD_visualization/1.GLD_indicators_line-chart_single_country_division.html)
 * [Line chart - side-by-side comparison](https://klee016.github.io/GLD_visualization/1.GLD_indicators_line-chart_side_by_side_comparison.html)
 * [Line chart - multiple countries/divisions](https://klee016.github.io/GLD_visualization/1.GLD_indicators_line-chart_multiple_country_division.html)
-* [Treemap](https://klee016.github.io/GLD_visualization/1.GLD_indicators_breakdown_treemap.html)
+* [Treemap - multiple disaggregation](https://klee016.github.io/GLD_visualization/1.GLD_indicators_breakdown_treemap.html)
 * [Treemap - sex](https://klee016.github.io/GLD_visualization/1.GLD_indicators_breakdown_sex_treemap.html)
 * [Treemap - region](https://klee016.github.io/GLD_visualization/1.GLD_indicators_breakdown_region_treemap.html)
 * [Treemap - age](https://klee016.github.io/GLD_visualization/1.GLD_indicators_breakdown_age_treemap.html)
