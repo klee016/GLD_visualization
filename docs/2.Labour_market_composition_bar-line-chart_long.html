@@ -57,8 +57,6 @@
             </div>
         </div>
     </div>
-
-
     <!-- Chart -->
     <div class="row">
         <div class="col-12">
@@ -77,19 +75,13 @@
     let baseUrl = defaultBaseUrl;
     let APIUrl;
     let mainChart = null;
-    let chartDataset = [];
-    let chartSeries = [];
-    let chartCountryDivisions = [];
     let chartSexes = [];
     let chartRegions = [];
     let chartAges = [];
     let chartEducations = [];
+    let chartCountryDivisions = [];
     let chartFacets = [];
     let numFacets = 1;
-    let grids = [];
-    let xAxis = [];
-    let yAxis = [];
-    let titles = [];
 
     new Vue({
         el: '#main',
@@ -207,31 +199,25 @@
                                     })
                                 })
                             })
-                            
                         })
                     })
                 })
 
+                let chartDataset = [];
+                let chartSeries = [];
+                let grids = [];
+                let xAxis = [];
+                let yAxis = [];
+                let titles = [];
                 let noData = false;
 
                 if (fullData.length === 0) {
-                    chartDataset = [];
-                    chartSeries = [];
-                    grids = [];
-                    xAxis = [];
-                    yAxis = [];
-                    titles = [];
                     noData = true;
                 } else {
                     chartDataset = [{
                         id: 'dataset_full',
                         source: customSort(fullData, 'year')
                     }];
-                    chartSeries = [];
-                    grids = [];
-                    xAxis = [];
-                    yAxis = [];
-                    titles = [];
 
                     chartFacets.forEach((facet, i) => {
                         let top = i*100/numFacets;
@@ -333,8 +319,8 @@
                     });
                 }
 
-                mainChart.clear()
-                this.renderChart()
+                mainChart.clear();
+                this.renderChart();
                 mainChart.setOption({
                     title: titles,
                     legend: {
@@ -374,7 +360,7 @@
 
             onCountryDivisionSelect: function(countryDivision) {
                 if(!chartCountryDivisions.includes(countryDivision)) {
-                    chartCountryDivisions = chartCountryDivisions.filter(o => o !== countryDivision)
+                    chartCountryDivisions = chartCountryDivisions.filter(o => o !== countryDivision);
                     chartCountryDivisions.push(countryDivision);
                 }
                 this.setChartFacets();
@@ -382,14 +368,14 @@
             },
 
             onCountryDivisionRemove: function(countryDivision) {
-                chartCountryDivisions = chartCountryDivisions.filter(o => o !== countryDivision)
+                chartCountryDivisions = chartCountryDivisions.filter(o => o !== countryDivision);
                 this.resetChartFacets();
                 this.loadMainData();
             },
             
-            onSexSelect: function(sex) {
+            onSexSelect: function(sex, id) {
                 if(!chartSexes.includes(sex)) {
-                    chartSexes = chartSexes.filter(o => o !== sex)
+                    chartSexes = chartSexes.filter(o => o !== sex);
                     chartSexes.push(sex);
                 }
                 this.setChartFacets();
@@ -397,14 +383,14 @@
             },
 
             onSexRemove: function(sex) {
-                chartSexes = chartSexes.filter(o => o !== sex)
+                chartSexes = chartSexes.filter(o => o !== sex);
                 this.resetChartFacets();
                 this.loadMainData();
             },
 
             onRegionSelect: function(region) {
                 if(!chartRegions.includes(region)) {
-                    chartRegions = chartRegions.filter(o => o !== region)
+                    chartRegions = chartRegions.filter(o => o !== region);
                     chartRegions.push(region);
                 }
                 this.setChartFacets();
@@ -412,14 +398,14 @@
             },
 
             onRegionRemove: function(region) {
-                chartRegions = chartRegions.filter(o => o !== region)
+                chartRegions = chartRegions.filter(o => o !== region);
                 this.resetChartFacets();
                 this.loadMainData();
             },
 
             onAgeSelect: function(age) {
                 if(!chartAges.includes(age)) {
-                    chartAges = chartAges.filter(o => o !== age)
+                    chartAges = chartAges.filter(o => o !== age);
                     chartAges.push(age);
                 }
                 this.setChartFacets();
@@ -427,14 +413,14 @@
             },
 
             onAgeRemove: function(age) {
-                chartAges = chartAges.filter(o => o !== age)
+                chartAges = chartAges.filter(o => o !== age);
                 this.resetChartFacets();
                 this.loadMainData();
             },
 
             onEducationSelect: function(education) {
                 if(!chartEducations.includes(education)) {
-                    chartEducations = chartEducations.filter(o => o !== education)
+                    chartEducations = chartEducations.filter(o => o !== education);
                     chartEducations.push(education);
                 }
                 this.setChartFacets();
@@ -442,7 +428,7 @@
             },
 
             onEducationRemove: function(education) {
-                chartEducations = chartEducations.filter(o => o !== education)
+                chartEducations = chartEducations.filter(o => o !== education);
                 this.resetChartFacets();
                 this.loadMainData();
             },
@@ -460,7 +446,7 @@
                         trigger: 'axis',
                         valueFormatter: (value) => {
                             if(value === null) {
-                                return "N/A"
+                                return "N/A";
                             } else {
                                 return (this.selectedNumberType === 'share')? value.toFixed(2) : value.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
                             }
