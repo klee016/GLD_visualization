@@ -21,7 +21,8 @@
 ## 4. Employment industry composition
 
 
-## 5. Employment composition
+## 5. Employment composition by sector
+* [Stacked bar/line chart (long screen)](https://klee016.github.io/GLD_visualization/5.Employment_composition_bar-line-chart_long.html)
 * [Stacked bar chart - share](https://klee016.github.io/GLD_visualization/5.Employment_composition_bar-chart.html)
 * [Stacked line chart - total](https://klee016.github.io/GLD_visualization/5.Employment_composition_line-chart.html)
 
