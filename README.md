@@ -45,5 +45,6 @@
 * [Stacked line chart - total](https://klee016.github.io/GLD_visualization/9.Employment_evolution_wage_employment_line-chart.html)
 
 ## 10. Outside labour force reason evolution
+* [Stacked bar/line chart (long screen)](https://klee016.github.io/GLD_visualization/10.Outside_labour_force_reason_evolution_bar-line-chart_long.html)
 * [Stacked bar chart - share](https://klee016.github.io/GLD_visualization/10.Outside_labour_force_reason_evolution_bar-chart.html)
 * [Stacked line chart - total](https://klee016.github.io/GLD_visualization/10.Outside_labour_force_reason_evolution_line-chart.html)
