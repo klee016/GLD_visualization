@@ -16,6 +16,7 @@
 * [Stacked line chart - total](https://klee016.github.io/GLD_visualization/2.Labour_market_composition_line-chart.html)
 
 ## 3. Extreme hours evolution
+* [Line chart (long screen)](https://klee016.github.io/GLD_visualization/3.Extreme_hours_evolution_line-chart_long.html)
 * [Line chart - share/total](https://klee016.github.io/GLD_visualization/3.Extreme_hours_evolution_line-chart.html)
 
 ## 4. Employment industry composition
