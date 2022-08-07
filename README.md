@@ -20,9 +20,6 @@
 ### 5. Employment composition by sector
 * [Stacked bar/line chart (long screen)](https://klee016.github.io/GLD_visualization/5.Employment_composition_bar-line-chart_long.html)
 
-### 6. Employment composition - special groups
-
-
 ### 7. Employment composition - 4 employment statuses
 * [Stacked bar/line chart (long screen)](https://klee016.github.io/GLD_visualization/7.Employment_composition_4_statuses_bar-line-chart_long.html)
 
