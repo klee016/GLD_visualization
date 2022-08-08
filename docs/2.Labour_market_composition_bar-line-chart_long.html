@@ -90,16 +90,16 @@
         },
         data: {
             sexList: [],
-            selectedSexes: ['All'],
+            selectedSexes: ['Male', 'Female'],
             regionList: [],
-            selectedRegions: ['All'],
+            selectedRegions: ['Urban', 'Rural'],
             ageList: [],
             selectedAges: ['All'],
             educationList: [],
             selectedEducations: ['All'],
             countryList: [],
             countryDivisionList: [],
-            selectedCountryDivisions: ["PHL - All", "ZAF - All"],
+            selectedCountryDivisions: ["ZAF - All"],
             yearList: [],
             sexSelectionMax: 3,
             regionSelectionMax: 3,
@@ -340,7 +340,7 @@
                 if(numFacets >= 3) {
                     this.sexSelectionMax = chartSexes.length;
                     this.regionSelectionMax = chartRegions.length;
-                    this.ageSelectionMax = chartRegions.length;
+                    this.ageSelectionMax = chartAges.length;
                     this.educationSelectionMax = chartEducations.length;
                     this.countryDivisionSelectionMax = chartCountryDivisions.length;
                 }

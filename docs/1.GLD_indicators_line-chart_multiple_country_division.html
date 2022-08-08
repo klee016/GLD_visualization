@@ -103,7 +103,7 @@
             selectedEducation: 'All',
             countryList: [],
             countryDivisionList: [],
-            selectedCountryDivisions: [],
+            selectedCountryDivisions: ["PHL - All", "PHL - Central Luzon", "ZAF - All", "ZAF - Limpopo"],
             yearList: [],
         },
         async mounted() {
@@ -132,7 +132,6 @@
                 this.ageList = responseObjs[5].data.map(o => o.age).filter(o => o!=='All');
                 this.ageList.unshift('All');
                 this.educationList = responseObjs[6].data.map(o => o.education);
-                this.selectedCountryDivisions = this.countryList.map(o => o + " - All");
             },
 
             loadMainData: async function() {
