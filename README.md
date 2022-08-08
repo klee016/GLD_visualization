@@ -1,6 +1,6 @@
 # GLD_visualization
 
-## Layouts for big screen
+## Layouts for exploratory analysis
 
 ### 1. GLD indicators
 * [Line chart - single country/division](https://klee016.github.io/GLD_visualization/1.GLD_indicators_line-chart_single_country_division.html)
@@ -33,7 +33,7 @@
 * [Stacked bar/line chart (long screen)](https://klee016.github.io/GLD_visualization/10.Outside_labour_force_reason_evolution_bar-line-chart_long.html)
 
 
-## Other layouts
+## Layouts for analysis presentation
 
 ### 1. GLD indicators
 * [Treemap - sex](https://klee016.github.io/GLD_visualization/1.GLD_indicators_breakdown_sex_treemap.html)
