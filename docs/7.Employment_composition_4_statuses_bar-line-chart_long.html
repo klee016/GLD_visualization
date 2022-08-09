@@ -165,10 +165,10 @@
                     fullData.forEach(o => o.E_emps = (o.E_emps_shr === "NA")? 0 : o.E_emps_shr);
                     fullData.forEach(o => o.E_unpaid = (o.E_unpaid_shr === "NA")? 0 : o.E_unpaid_shr);
                     fullData.forEach(o => o.sum = o.E_wage + o.E_self + o.E_emps + o.E_unpaid);
-                    fullData.forEach(o => o.E_wage = o.E_wage/o.sum);
-                    fullData.forEach(o => o.E_self = o.E_self/o.sum);
-                    fullData.forEach(o => o.E_emps = o.E_emps/o.sum);
-                    fullData.forEach(o => o.E_unpaid = o.E_unpaid/o.sum);
+                    fullData.forEach(o => Math.floor(o.E_wage = o.E_wage/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.E_self = o.E_self/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.E_emps = o.E_emps/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.E_unpaid = o.E_unpaid/o.sum*10000)/10000);
                 } else {
                     fullData.forEach(o => o.E_wage = (o.E_wage_tot === "NA")? 0 : o.E_wage_tot);
                     fullData.forEach(o => o.E_self = (o.E_self_tot === "NA")? 0 : o.E_self_tot);

@@ -164,9 +164,9 @@
                     fullData.forEach(o => o.E_wage_ind = (o.E_wage_ind_shr === "NA")? 0 : o.E_wage_ind_shr);
                     fullData.forEach(o => o.E_wage_ser = (o.E_wage_ser_shr === "NA")? 0 : o.E_wage_ser_shr);
                     fullData.forEach(o => o.sum = o.E_wage_agr + o.E_wage_ind + o.E_wage_ser);
-                    fullData.forEach(o => o.E_wage_agr = o.E_wage_agr/o.sum);
-                    fullData.forEach(o => o.E_wage_ind = o.E_wage_ind/o.sum);
-                    fullData.forEach(o => o.E_wage_ser = o.E_wage_ser/o.sum);
+                    fullData.forEach(o => o.E_wage_agr = Math.floor(o.E_wage_agr/o.sum*10000)/10000);
+                    fullData.forEach(o => o.E_wage_ind = Math.floor(o.E_wage_ind/o.sum*10000)/10000);
+                    fullData.forEach(o => o.E_wage_ser = Math.floor(o.E_wage_ser/o.sum*10000)/10000);
                 } else {
                     fullData.forEach(o => o.E_wage_agr = (o.E_wage_agr_tot === "NA")? 0 : o.E_wage_agr_tot);
                     fullData.forEach(o => o.E_wage_ind = (o.E_wage_ind_tot === "NA")? 0 : o.E_wage_ind_tot);

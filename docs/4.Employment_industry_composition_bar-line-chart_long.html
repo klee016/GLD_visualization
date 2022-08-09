@@ -172,16 +172,16 @@
                     fullData.forEach(o => o.D_gov = (o.D_gov_shr === "NA")? 0 : o.D_gov_shr);
                     fullData.forEach(o => o.D_oth = (o.D_oth_shr === "NA")? 0 : o.D_oth_shr);
                     fullData.forEach(o => o.sum = o.D_agr + o.D_min + o.D_man + o.D_utl + o.D_ctr + o.D_trd + o.D_tra + o.D_bus + o.D_gov + o.D_oth);
-                    fullData.forEach(o => o.D_agr = o.D_agr/o.sum);
-                    fullData.forEach(o => o.D_min = o.D_min/o.sum);
-                    fullData.forEach(o => o.D_man = o.D_man/o.sum);
-                    fullData.forEach(o => o.D_utl = o.D_utl/o.sum);
-                    fullData.forEach(o => o.D_ctr = o.D_ctr/o.sum);
-                    fullData.forEach(o => o.D_trd = o.D_trd/o.sum);
-                    fullData.forEach(o => o.D_tra = o.D_tra/o.sum);
-                    fullData.forEach(o => o.D_bus = o.D_bus/o.sum);
-                    fullData.forEach(o => o.D_gov = o.D_gov/o.sum);
-                    fullData.forEach(o => o.D_oth = o.D_oth/o.sum);
+                    fullData.forEach(o => Math.floor(o.D_agr = o.D_agr/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.D_min = o.D_min/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.D_man = o.D_man/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.D_utl = o.D_utl/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.D_ctr = o.D_ctr/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.D_trd = o.D_trd/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.D_tra = o.D_tra/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.D_bus = o.D_bus/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.D_gov = o.D_gov/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.D_oth = o.D_oth/o.sum*10000)/10000);
                 } else {
                     fullData.forEach(o => o.D_agr = (o.D_agr_tot === "NA")? 0 : o.D_agr_tot);
                     fullData.forEach(o => o.D_min = (o.D_min_tot === "NA")? 0 : o.D_min_tot);

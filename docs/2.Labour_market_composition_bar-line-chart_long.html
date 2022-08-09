@@ -164,9 +164,9 @@
                     fullData.forEach(o => o.B_unemp = (o.B_unemp_shr === "NA")? 0 : o.B_unemp_shr);
                     fullData.forEach(o => o.I_NILF = (o.I_NILF_shr === "NA")? 0 : o.I_NILF_shr);
                     fullData.forEach(o => o.sum = o.B_emp + o.B_unemp + o.I_NILF);
-                    fullData.forEach(o => o.B_emp = o.B_emp/o.sum);
-                    fullData.forEach(o => o.B_unemp = o.B_unemp/o.sum);
-                    fullData.forEach(o => o.I_NILF = o.I_NILF/o.sum);
+                    fullData.forEach(o => Math.floor(o.B_emp = o.B_emp/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.B_unemp = o.B_unemp/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.I_NILF = o.I_NILF/o.sum*10000)/10000);
                 } else {
                     fullData.forEach(o => o.B_emp = (o.B_emp_tot === "NA")? 0 : o.B_emp_tot);
                     fullData.forEach(o => o.B_unemp = (o.B_unemp_tot === "NA")? 0 : o.B_unemp_tot);

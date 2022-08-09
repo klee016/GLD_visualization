@@ -164,9 +164,9 @@
                     fullData.forEach(o => o.D_ind = (o.D_ind_shr === "NA")? 0 : o.D_ind_shr);
                     fullData.forEach(o => o.D_ser = (o.D_ser_shr === "NA")? 0 : o.D_ser_shr);
                     fullData.forEach(o => o.sum = o.D_agr + o.D_ind + o.D_ser);
-                    fullData.forEach(o => o.D_agr = o.D_agr/o.sum);
-                    fullData.forEach(o => o.D_ind = o.D_ind/o.sum);
-                    fullData.forEach(o => o.D_ser = o.D_ser/o.sum);
+                    fullData.forEach(o => Math.floor(o.D_agr = o.D_agr/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.D_ind = o.D_ind/o.sum*10000)/10000);
+                    fullData.forEach(o => Math.floor(o.D_ser = o.D_ser/o.sum*10000)/10000);
                 } else {
                     fullData.forEach(o => o.D_agr = (o.D_agr_tot === "NA")? 0 : o.D_agr_tot);
                     fullData.forEach(o => o.D_ind = (o.D_ind_tot === "NA")? 0 : o.D_ind_tot);
