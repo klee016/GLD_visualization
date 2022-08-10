@@ -9,15 +9,13 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha256-cMPWkL3FzjuaFSfEYESYmjF25hCIL6mfRSPnW8OVvM4=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-multiselect@2.1.6/dist/vue-multiselect.min.js" integrity="sha256-wlV5NwZIO2I2LLLnqoAvxr5RMplF64uEMH67yvXzCRY=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue-slider-component@3.2.20/dist/vue-slider-component.umd.min.js" integrity="sha256-4UmI6Bbwggo/4x2POQMK9pQfhfGo42bGD7bRSh6s2B0=" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha256-YvdLHPgkqJ8DVUxjjnGVlMMJtNimJ6dYkowFFvp4kKs=" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-multiselect@2.1.6/dist/vue-multiselect.min.css" integrity="sha256-z2yEj00DOz/exljY7gOZL3Zw4pHEGcPY3UeiH97DRHE=" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-slider-component@3.2.20/theme/default.css" integrity="sha256-GcXSoUxLScXHrsI4TSH5zU/uuZ24fTr/2tkwPFzLLus=" crossorigin="anonymous">
 
 </head>
 <body>
 
-<div id = 'main' class="container-fluid border" style="width:1000px;height:750px">
+<div id = 'main' class="container-fluid border" style="width:1000px;height:700px">
     <!-- Title -->
     <div class="row mt-2 mx-3 px-2">
         <p class="fs-3 text-center">GLD indicators - single country/division</p>
@@ -25,35 +23,27 @@
     <!-- Main filters -->
     <div class="row mx-2 px-2 py-2 border">
         <!-- Indicator -->
-        <div class="col col-6 align-self-center">
+        <div class="col col-4 align-self-center">
             <label>Indicator</label>
             <div class="align-self-center mb-2">
                 <multiselect v-model="selectedIndicator" :multiple="false" label="label" track-by="label" :options="indicatorList" placeholder="Search" @select="onIndicatorChange"></multiselect>
             </div>
         </div>
         <!-- Country -->
-        <div class="col col-6 align-self-center">
+        <div class="col col-4 align-self-center">
             <label>Country - Admin division</label>
             <div class="flex-grow-1 align-self-center mb-2">
                 <multiselect v-model="selectedCountryDivision" :multiple="false" :options="countryDivisionList" placeholder="Search" @select="onCountryDivisionChange"></multiselect>
             </div>
         </div>
         <!-- Disaggregation -->
-        <div class="col col-6 align-self-top">
+        <div class="col col-4 align-self-top">
             <label>Disaggregation</label>
             <div class="align-self-center d-flex justify-content-around mt-2">
                 <label for="checkbox"><input type="checkbox" class="mx-1" id="checkbox" v-model="disaggregation_sex" @change="onChange">Sex</label>
                 <label for="checkbox"><input type="checkbox" class="mx-1" id="checkbox" v-model="disaggregation_region" @change="onChange">Region</label>
                 <label for="checkbox"><input type="checkbox" class="mx-1" id="checkbox" v-model="disaggregation_age" @change="onChange">Age</label>
                 <label for="checkbox"><input type="checkbox" class="mx-1" id="checkbox" v-model="disaggregation_education" @change="onChange">Education</label>
-            </div>
-        </div>
-        <!-- Sample size -->
-        <div class="col col-6 align-self-center">
-            <label>Mark small sample estimates (sample size / WAP sample size)</label>
-            <div class="flex-grow-1 align-self-center mx-2">
-                <!-- <vue-slider class="mt-2" v-model="selectedSampleRatioRange" :interval="0.001" :min="0" :max="maxSampleRatio" :dot-options="[{disabled: false}, {disabled: true}]" :order="false" :lazy="true" @change="onMaskChange"></vue-slider> -->
-                <vue-slider class="mt-2" v-model="selectedMaxSampleRatio" :interval="0.001" :min="0" :max="maxSampleRatio" :lazy="true" @change="onMaskChange"></vue-slider>
             </div>
         </div>
     </div>
@@ -82,12 +72,11 @@
     new Vue({
         el: '#main',
         components: {
-            Multiselect: window.VueMultiselect.default,
-            vueSlider: window[ 'vue-slider-component' ],
+            Multiselect: window.VueMultiselect.default
         },
         data: {
             indicatorList: [],
-            selectedIndicator: {code: "A_pop_tot", label: "Population total"},
+            selectedIndicator: {code: "A_pop_smp", label: "Population sample"},
             sexList: [],
             regionList: [],
             ageList: [],
@@ -100,8 +89,6 @@
             disaggregation_region: false,
             disaggregation_age: false,
             disaggregation_education: true,
-            selectedMaxSampleRatio: 0.02,
-            maxSampleRatio: 0.1,
         },
         async mounted() {
             APIUrl = baseUrl + "/index.php/api/tables/";
@@ -138,20 +125,15 @@
                 let regionParams = (this.disaggregation_region == false)? ['All'] : this.regionList.filter(o => o !== 'All');
                 let ageParams = (this.disaggregation_age == false)? ['All'] : this.ageList.filter(o => o !== 'All');
                 let educationParams = (this.disaggregation_education == false)? ['All'] : this.educationList.filter(o => o !== 'All');
-                let responseObj;
 
-                responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&admin_txt=" + adminDivisionParam + "&sex=All" + "&region=All" + "&age=All" + "&education=All" + "&fields=year,country,admin_txt,A_wap_smp");
-                let wapSampleSize = responseObj.data.reduce((a, v) => ({ ...a, [v.year]: v.A_wap_smp}), {});
-                let sampleIndicator = this.selectedIndicator.code.slice(0, -4) + '_smp';
-                let indicatorParams = [sampleIndicator, this.selectedIndicator.code].join(',');
-                
-                responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&admin_txt=" + adminDivisionParam + "&sex=" + sexParams.join(',') + "&region=" + regionParams.join(',') + "&age=" + ageParams.join(',') + "&education=" + educationParams.join(',') + "&fields=year,country,admin_txt,sex,region,age,education," + indicatorParams);
+                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&admin_txt=" + adminDivisionParam + "&sex=" + sexParams.join(',') + "&region=" + regionParams.join(',') + "&age=" + ageParams.join(',') + "&education=" + educationParams.join(',') + "&fields=year,country,admin_txt,sex,region,age,education," + this.selectedIndicator.code);
                 let fullData = responseObj.data;
                 fullData.forEach(o => o.countryDivision = o.country + " - " + o.admin_txt);
                 fullData.forEach(o => o.disaggregation = o.sex + ',' + o.region + ',' + o.age + ',' + o.education);
                 fullData.forEach(o => o.value = o[this.selectedIndicator.code]);
-                fullData.forEach(o => o.sampleRatio = o[sampleIndicator]/wapSampleSize[o.year]);
+                fullData.forEach(o => o.sampleRatio = o[this.selectedIndicator.code]);
                 let noData = false;
+
                 chartDisaggregations = [];
                 chartDisaggregations = cartesian(sexParams, regionParams, ageParams, educationParams);
 
@@ -184,7 +166,6 @@
                             {
                                 name: chartDisaggregation.filter(o => o !== 'All').join(','),
                                 type: 'line',
-                                symbolSize: 5,
                                 datasetId: 'dataset_' + chartDisaggregation.filter(o => o !== 'All').join(','),
                                 // showSymbol: false,
                                 encode: {
@@ -219,37 +200,8 @@
                         data: legend,
                     },
                     dataset: chartDataset,
-                    series: chartSeries,
+                    series: chartSeries
                 });
-
-                this.onMaskChange();
-            },
-
-            onMaskChange: function() {
-                let indicatorType = this.selectedIndicator.code.slice(-3);
-                let dimension;
-                if (indicatorType === 'smp') {
-                    dimension = 11;
-                } else if (indicatorType === 'tot') {
-                    dimension = 12;
-                } else if (indicatorType === 'shr') {
-                    dimension = 12;
-                } else {
-                    return;
-                }
-
-                mainChart.setOption({
-                    visualMap: {
-                        show: false,
-                        dimension: dimension,
-                        precision: 2,
-                        pieces: [
-                            {max: this.selectedMaxSampleRatio, symbol: 'emptyTriangle', colorAlpha: 0.4, colorLightness: 0},
-                            {min: this.selectedMaxSampleRatio, max: 1, symbol: 'emptyCircle', colorAlpha: 1},
-                        ]
-                    }
-                });
-
             },
 
             onCountryDivisionChange: function(countryDivision) {
@@ -295,15 +247,11 @@
                     }],
                     tooltip: {
                         trigger: 'axis',
-                        formatter: args => {
+                        formatter: function(args) {
                             let template = args[0].name + "<br>";
                             for (let i = 0; i < args.length; i++) {
                                 let data = args[i];
-                                let indicatorType = this.selectedIndicator.code.slice(-3);
-                                let val = data.value.value;
-                                if (val != 'NA') {
-                                    val = (indicatorType === 'tot' || indicatorType === 'smp')? val.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}) : val.toFixed(2);    
-                                }
+                                let val = data.value.value.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
                                 template += [
                                     data.marker + data.seriesName,
                                     "<span style=\"float:right;margin-left:20px;font-size:14px;color:#666;font-weight:900\">" + val + "</span>",
@@ -355,7 +303,7 @@
                             5,  // down
                             250, // left
                         ],
-                        // icon: 'roundRect',
+                        icon: 'roundRect',
                         orient: 'horizontal',
                     },
                     xAxis: {
