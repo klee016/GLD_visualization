@@ -1,6 +1,14 @@
 # GLD_visualization
 
-## Layouts for exploratory analysis
+## Stats by job classifications
+
+### 1. ISCO_1988
+
+
+### 2. ISIC_4
+
+
+## GLD indicators (exploratory analysis)
 
 ### 1. GLD indicators
 * [Line chart - single country/division](https://klee016.github.io/GLD_visualization/1.GLD_indicators_line-chart_single_country_division.html)
@@ -33,7 +41,7 @@
 * [Stacked bar/line chart (long screen)](https://klee016.github.io/GLD_visualization/10.Outside_labour_force_reason_evolution_bar-line-chart_long.html)
 
 
-## Layouts for analysis presentation
+## GLD indicators (analysis presentation)
 
 ### 1. GLD indicators
 * [Treemap - sex](https://klee016.github.io/GLD_visualization/1.GLD_indicators_breakdown_sex_treemap.html)
