@@ -159,7 +159,6 @@
                 this.yearList.forEach(year => {
                     let chartDataset = [];
                     let totalValue = fullData.find(o => o.year === year && o.sex === 'Male' && o.region === 'All' && o.age === 'All' && o.education === 'Primary').value;
-                    console.log(totalValue)
 
                     // level 1
                     breakdowns[this.selectedBreakdown1].filter(o => o !== 'All').forEach(breakdown1 => {

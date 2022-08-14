@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>GLD indicators</title>
+    <title>Job composition by ISIC classification</title>
     <!-- including ECharts file -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js" integrity="sha256-oZEaXgWqxLmr12VzCK9eGOuHIi3XPZ/KsJXXFjtyvZA=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -18,22 +18,22 @@
 <div id = 'main' class="container-fluid border" style="width:1000px;height:700px">
     <!-- Title -->
     <div class="row mt-2 mx-3 px-2">
-        <p class="fs-3 text-center">GLD indicator breakdowns - Age</p>
+        <p class="fs-3 text-center">Job composition by ISIC classification</p>
     </div>
     <!-- Main filters -->
     <div class="row mx-2 px-2 py-2 border">
-        <!-- Indicator -->
-        <div class="col col-6 align-self-center">
-            <label>Indicator</label>
-            <div class="align-self-center mb-2">
-                <multiselect v-model="selectedIndicator" :multiple="false" label="label" track-by="label" :options="indicatorList" placeholder="Search" @select="onIndicatorChange"></multiselect>
-            </div>
-        </div>
         <!-- Country -->
         <div class="col col-6 align-self-center">
-            <label>Country - Admin division</label>
+            <label>Country</label>
             <div class="align-self-center mb-2">
-                <multiselect v-model="selectedCountryDivision" :multiple="false" :options="countryDivisionList" placeholder="Search" @select="onCountryDivisionChange"></multiselect>
+                <multiselect v-model="selectedCountry" :multiple="false" :allow-empty="false" :options="countryList" placeholder="Search" @select="onCountryChange"></multiselect>
+            </div>
+        </div>
+        <!-- Admin division -->
+        <div class="col col-6 align-self-center">
+            <label>Admin division</label>
+            <div class="align-self-center mb-2">
+                <multiselect v-model="selectedDivision" :multiple="false" :allow-empty="false" :options="divisionList" placeholder="Search" @select="onDivisionChange"></multiselect>
             </div>
         </div>
     </div>
@@ -55,7 +55,8 @@
     let baseUrl = defaultBaseUrl;
     let APIUrl;
     let mainChart = null;
-    // let chartDatasets = [];
+    let breakdowns = {};
+    let chartColors = [];
 
     new Vue({
         el: '#main',
@@ -63,15 +64,14 @@
             Multiselect: window.VueMultiselect.default
         },
         data: {
-            indicatorList: [],
-            selectedIndicator: {code: "A_pop_tot", label: "Population total"},
-            sexList: [],
-            regionList: [],
-            ageList: [],
-            educationList: [],
-            countryList: [],
             countryDivisionList: [],
-            selectedCountryDivision: '',
+            countryList: [],
+            divisionList: [],
+            selectedCountry: 'EGY',
+            selectedDivision: 'All',
+            ISIC1List: [],
+            ISIC2List: [],
+            ISICLabels: [],
             yearList: [],
         },
         async mounted() {
@@ -82,98 +82,85 @@
         },
         methods: {
             loadCodeLists: async function() {
-                let responseObjs = await Promise.all([dataFetch(APIUrl + "info/central/WLD_2022_GLD-indicators"),
-                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=country,admin_txt"),
-                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=year"),
-                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=sex"),
-                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=region"),
-                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=age"),
-                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=education")]);
-                this.indicatorList = responseObjs[0].result.result_.features.map(function(o) {return{code: o.feature_name, label: o.feature_label}}); 
-                this.indicatorList.splice(0, 7);
-                this.indicatorList = this.indicatorList.filter(o => o.label.endsWith(" total"));
+                let responseObjs = await Promise.all([dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-isic_red/10000?fields=countrycode,subnatidtxt"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_ISIC_4/10000?fields=Code,Description"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-isic_red/10000?fields=isic_1"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-isic_red/10000?fields=isic_2")]);
+                
+                this.countryDivisionList = responseObjs[0].data.map(function(o) {return {country: o.countrycode, division: o.subnatidtxt}});
+                this.countryList = [...new Set(this.countryDivisionList.map(o => o.country))];  
+                this.ISICLabels = responseObjs[1].data;
+                console.log(responseObjs[2].data)
+                this.ISIC1List = responseObjs[2].data.map(o => {return {code: o.isic_1, label: this.ISICLabels.find(a => a.Code === o.isic_1).Description}});
+                this.ISIC2List = responseObjs[3].data.map(o => {return {code: o.isic_2, label: this.ISICLabels.find(a => a.Code === o.isic_2).Description}});
+                
 
-                this.countryDivisionList = responseObjs[1].data.map(o => o.country + " - " + o.admin_txt);
-                this.countryList = [...new Set(responseObjs[1].data.map(o => o.country))];
-                this.yearList = responseObjs[2].data.map(o => o.year);
-                this.sexList = responseObjs[3].data.map(o => o.sex);
-                this.regionList = responseObjs[4].data.map(o => o.region);
-                this.ageList = responseObjs[5].data.map(o => o.age);
-                this.educationList = responseObjs[6].data.map(o => o.education);
-                this.selectedCountryDivision = "PHL - All";
+                console.log(this.ISIC2List)
+
+                this.divisionList = this.countryDivisionList.filter(o => o.country === this.selectedCountry).map(o => o.division);
+                this.divisionList.unshift('All');
             },
 
             loadMainData: async function() {
-                let countryParam = this.selectedCountryDivision.split(" - ")[0];
-                let adminDivisionParam = this.selectedCountryDivision.split(" - ")[1];
-                let sexParams = this.sexList.join(',');
-                let regionParams = this.regionList.join(',');
-                let ageParams = this.ageList.join(',');
-                let educationParams = this.educationList.join(',');
-                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&admin_txt=" + adminDivisionParam + "&sex=" + sexParams + "&region=" + regionParams + "&age=" + ageParams + "&education=" + educationParams + "&fields=year,country,admin_txt,sex,region,age,education," + this.selectedIndicator.code);
+                let countryParam = this.selectedCountry;
+                let divisionParam = (this.selectedDivision === 'All')? '' : '&subnatidtxt=' + this.selectedDivision;
+                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-isic_red/10000?countrycode=" + countryParam + divisionParam);
                 let fullData = responseObj.data;
-                fullData.forEach(o => o.countryDivision = o.country + " - " + o.admin_txt);
-                fullData.forEach(o => o.value = o[this.selectedIndicator.code]);
 
                 this.yearList = [... new Set(fullData.map(o => o.year))];
+                this.yearList.sort();
                 let optionsList = [];
                 this.yearList.forEach(year => {
                     let chartDataset = [];
 
-                    // level 1 - age
-                    this.ageList.filter(o => o !== 'All').forEach(age => {
-                        let ageBreakdown = fullData.find(o => o.year === year && o.sex === 'All' && o.region === 'All' && o.age === age && o.education === 'All');
-                        let sexBreakdownChildren = [];
+                    // level 1
+                    this.ISIC1List.forEach((isic_1, i) => {
+                        let isic1Breakdown;
+                        if (this.selectedDivision === 'All') {
+                            isic1Breakdown = fullData.filter(o => o.year === year && o.isic_1 === isic_1.code);
+                        } else {
+                            isic1Breakdown = fullData.filter(o => o.year === year && o.isic_1 === isic_1.code && o.subnatidtxt === this.selectedDivision);
+                        }
 
-                        // level 2 - sex
-                        this.sexList.filter(o => o !== 'All').forEach(sex => {
-                            let sexBreakdown = fullData.find(o => o.year === year && o.sex === sex && o.region === 'All' && o.age === age && o.education === 'All');
-                            let regionBreakdownChildren = [];
+                        let isic1BreakdownValue = isic1Breakdown.map(o => o.case_tot).reduce((a, b) => a + b, 0)
+                        let isic1BreakdownChildren = [];
 
-                            // level 3 - region
-                            this.regionList.filter(o => o !== 'All').forEach(region => {
-                                let regionBreakdown = fullData.find(o => o.year === year && o.sex === sex && o.region === region && o.age === age && o.education === 'All');
-                                let educationBreakdownChildren = [];
-
-                                // level 4 - education
-                                this.educationList.filter(o => o !== 'All').forEach(education => {
-                                    let educationBreakdown = fullData.find(o => o.year === year && o.sex === sex && o.region === region && o.age === age && o.education === education);
-                                    educationBreakdownChildren.push({
-                                        value: (educationBreakdown === undefined)? null : educationBreakdown.value,
-                                        name: education,
-                                        path: age + '/' + sex + '/' + region + '/' + education,
-                                    })
-                                });
-                                
-                                regionBreakdownChildren.push({
-                                    value: (regionBreakdown === undefined)? null : regionBreakdown.value,
-                                    name: region,
-                                    path: age + '/' + sex + '/' + region,
-                                    children: educationBreakdownChildren
-                                });
-                            });
+                        // level 2
+                        this.ISIC2List.forEach(isic_2 => {
+                            let isic2Breakdown;
+                            if (this.selectedDivision === 'All') {
+                                isic2Breakdown = fullData.filter(o => o.year === year && o.isic_1 === isic_1.code && o.isic_2 === isic_2.code);
+                            } else {
+                                isic2Breakdown = fullData.filter(o => o.year === year && o.isic_1 === isic_1.code && o.isic_2 === isic_2.code && o.subnatidtxt === this.selectedDivision);
+                            }
                             
-                            sexBreakdownChildren.push({
-                                value: (sexBreakdown === undefined)? null : sexBreakdown.value,
-                                name: sex,
-                                path: age + '/' + sex,
-                                children: regionBreakdownChildren
+                            let isic2BreakdownValue = isic2Breakdown.map(o => o.case_tot).reduce((a, b) => a + b, 0)
+                            let isic2BreakdownChildren = [];
+
+                            isic1BreakdownChildren.push({
+                                value: isic2BreakdownValue,
+                                name: isic_2.label,
+                                path: isic_1.label + '/' + isic_2.label,
+                                children: isic2BreakdownChildren
                             });
                         });
 
                         chartDataset.push({
-                            value: (ageBreakdown === undefined)? null : ageBreakdown.value,
-                            name: age,
-                            path: age,
-                            children: sexBreakdownChildren
+                            value: isic1BreakdownValue,
+                            name: isic_1.label,
+                            path: isic_1.label,
+                            color: [color[i]],
+                            children: isic1BreakdownChildren
                         });
+
                     });
 
                     optionsList.push({
-                        title: {text: this.selectedIndicator.label + ', ' + this.selectedCountryDivision + ' (' + year +  ')'},
-                        series: [
-                            {data: chartDataset}
-                        ]
+                        title: {text: this.selectedCountry + ' - ' + this.selectedDivision + ' (' + year +  ')'},
+                        series: [{
+                            
+                            data: chartDataset,
+                        }]
                     })
                 });
 
@@ -184,12 +171,16 @@
                 });
             },
 
-            onIndicatorChange: async function(selectedOption) {
-                this.selectedIndicator = selectedOption;
+            onCountryChange: async function(selectedOption) {
+                this.selectedCountry = selectedOption;
+                this.divisionList = this.countryDivisionList.filter(o => o.country === selectedOption).map(o => o.division);;
+                this.divisionList.unshift('All');
+                this.selectedDivision = 'All';
                 this.loadMainData();
             },
 
-            onCountryDivisionChange: async function(selectedOption) {
+            onDivisionChange: async function(selectedOption) {
+                this.selectedDivision = selectedOption;
                 this.selectedCountryDivision = selectedOption;
                 this.loadMainData();
             },
@@ -207,7 +198,7 @@
                             axisType: 'category',
                             // realtime: false,
                             // loop: false,
-                            autoPlay: true,
+                            autoPlay: false,
                             // currentIndex: 2,
                             playInterval: 1000,
                             // controlStyle: {
@@ -216,7 +207,7 @@
                             data: this.yearList,
                         },
                         dataset: [],
-                        color: color,
+                        // color: color,
                         title: [{
                             id: 'main title',
                             show: true,
@@ -226,11 +217,12 @@
                                 fontSize: 16,
                                 lineHeight: 20
                             },
-                            top: 0,
+                            top: 10,
                             x: "center"
                         }],
                         tooltip: {
                             formatter: function (info) {
+                                console.log(info)
                                 var value = info.value;
                                 var treePathInfo = info.treePathInfo;
                                 if (treePathInfo === undefined) {
@@ -242,7 +234,9 @@
                                 }
                                 return [
                                     '<div class="tooltip-title">' +
-                                    echarts.format.encodeHTML(treePath.join('/')) +
+                                    // echarts.format.encodeHTML(treePath.join('/')) +
+                                    'ISIC 1: ' + treePath[0] + '<br>' +
+                                    'ISIC 2: ' + treePath[1] + 
                                     '</div>',
                                     'Value: ' + echarts.format.addCommas(value)
                                 ].join('');
@@ -264,7 +258,7 @@
                         // },
                         series: [
                             {
-                                name: this.selectedIndicator.label,
+                                name: 'case_tot',
                                 type: 'treemap',
                                 breadcrumb: {
                                     show: false
@@ -275,43 +269,36 @@
                                     formatter: '{b}'
                                 },
                                 upperLabel: {
-                                    show: true,
+                                    show: false,
                                     height: 30
                                 },
                                 itemStyle: {
-                                    borderColor: '#fff'
+                                    borderColor: '#fff',
                                 },
                                 levels: [
                                     {
                                         itemStyle: {
                                             borderColor: '#F8F9FA',
-                                            borderWidth: 5,
-                                            gapWidth: 5
+                                            borderWidth: 1,
+                                            gapWidth: 2
                                         },
                                         upperLabel: {
-                                            show: true
-                                        }
-                                    },
-                                    {
-                                        itemStyle: {
-                                            borderColor: '#DEE2E6',
-                                            borderWidth: 5,
-                                            gapWidth: 5
-                                        },
-                                    },
-                                    {
-                                        itemStyle: {
-                                            borderColor: '#ADB5BD',
-                                            borderWidth: 5,
-                                            gapWidth: 5
+                                            show: false
                                         }
                                     },
                                     {
                                         colorSaturation: [0.25, 0.5],
                                         itemStyle: {
-                                            borderWidth: 5,
-                                            gapWidth: 1,
-                                            borderColorSaturation: 0.6
+                                            borderColor: '#DEE2E6',
+                                            borderWidth: 0,
+                                            gapWidth: 0
+                                        },
+                                    },
+                                    {
+                                        itemStyle: {
+                                            borderColor: '#fff',
+                                            borderWidth: 1,
+                                            gapWidth: 0
                                         }
                                     }
                                 ],
