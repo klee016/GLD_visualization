@@ -3,10 +3,10 @@
 ## Stats by job classifications
 
 ### 1. ISCO_1988
-
+* [Treemap](https://klee016.github.io/GLD_visualization/C1.classification_isco_treemap.html)
 
 ### 2. ISIC_4
-
+* [Treemap](https://klee016.github.io/GLD_visualization/C1.classification_isic_treemap.html) - data error
 
 ## GLD indicators (exploratory analysis)
 
