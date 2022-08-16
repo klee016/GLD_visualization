@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>GLD variable summary</title>
+    <!-- including ECharts file -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js" integrity="sha256-oZEaXgWqxLmr12VzCK9eGOuHIi3XPZ/KsJXXFjtyvZA=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha256-cMPWkL3FzjuaFSfEYESYmjF25hCIL6mfRSPnW8OVvM4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-multiselect@2.1.6/dist/vue-multiselect.min.js" integrity="sha256-wlV5NwZIO2I2LLLnqoAvxr5RMplF64uEMH67yvXzCRY=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha256-YvdLHPgkqJ8DVUxjjnGVlMMJtNimJ6dYkowFFvp4kKs=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-multiselect@2.1.6/dist/vue-multiselect.min.css" integrity="sha256-z2yEj00DOz/exljY7gOZL3Zw4pHEGcPY3UeiH97DRHE=" crossorigin="anonymous">
+
+</head>
+<body>
+
+<div id = 'main' class="container-fluid border" style="width:1400px;height:2000px">
+    <!-- Title -->
+    <div class="row mt-2 mx-3 px-2">
+        <p class="fs-3 text-center">GLD variable summary</p>
+    </div>
+    <!-- Main filters -->
+    <div class="row mx-2 px-2 py-2 border">
+        <!-- Country -->
+        <div class="col col-6 align-self-center">
+            <label>Country</label>
+            <div class="align-self-center mb-2">
+                <multiselect v-model="selectedCountry" :multiple="false" :allow-empty="false" :options="countryList" placeholder="Search" @select="onCountryChange"></multiselect>
+            </div>
+        </div>
+        <!-- Year -->
+        <!-- <div class="col col-6 align-self-center">
+            <label>Year</label>
+            <div class="align-self-center mb-2">
+                <multiselect v-model="selectedYear" :multiple="false" :allow-empty="false" :options="yearList" placeholder="Search" @select="onYearChange"></multiselect>
+            </div>
+        </div> -->
+    </div>
+
+    <!-- Chart -->
+    <div class="row">
+        <div class="col-12">
+            <div class="pt-3" id="chart" style="width:100%;height:1830px"></div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    const defaultBaseUrl = "https://training.ihsn.org";
+    // const color = ["#B1DDF1", "#A8B2D0", "#9F87AF", "#88527F", "#614344", "#332C23"];
+    const color = ["#58C0A1", "#7593BB", "#EDA857", "#A374AD", "#A4CD89", "#DB5EAF", "#EAC34E", "#D98276", "#4AA8B3", "#F9A09A", "#EBD253", "#70A65A", "#33775E", "#C46F72", "#509592", "#5E4690", "#6EAF45", "#1E6896", "#27B0AE", "#048756", "#C1DDEB", "#629FCB", "#CAE9AD", "#6FBC6C", "#F9B9B7", "#EA5E5F", "#FFD19D", "#F38400", "#C6ADD5"];
+    let baseUrl = defaultBaseUrl;
+    let APIUrl;
+    let mainChart = null;
+
+    new Vue({
+        el: '#main',
+        components: {
+            Multiselect: window.VueMultiselect.default
+        },
+        data: {
+            countryYearList: [],
+            countryList: [],
+            selectedCountry: 'BRA',
+            yearList: [],
+            selectedYear: 'All',
+        },
+        async mounted() {
+            APIUrl = baseUrl + "/index.php/api/tables/";
+            await this.loadCodeLists();
+            this.renderChart();
+            await this.loadMainData();
+        },
+        methods: {
+            loadCodeLists: async function() {
+                let responseObjs = await Promise.all([dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-vars_present/10000?fields=country,year")]);
+                this.countryYearList = responseObjs[0].data.map(function(o) {return {country: o.country, year: o.year}});
+                this.countryList = [...new Set(this.countryYearList.map(o => o.country))];
+                this.countryList.sort();                
+                this.yearList = this.countryYearList.filter(o => o.country === this.selectedCountry).map(o => o.year);
+                this.yearList.sort();
+                this.yearList.unshift('All');
+            },
+
+            loadMainData: async function() {
+                let countryParam = this.selectedCountry;
+                let yearParam = (this.selectedYear === 'All')? '' : '&year=' + this.selectedDivision;
+                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-vars_present/10000?country=" + countryParam + yearParam + '&latest=1');
+                let fullData = responseObj.data;
+
+                let variableList = [... new Set(fullData.map(o => o.var_label))];
+                variableList.sort();
+
+                // aggregate data
+                let groupByHelper = {};
+                let aggregatedData = fullData.reduce((accumulator, currentValue) => {
+                    let yearLabel = currentValue['year'].toString();
+                    let variableLabel = currentValue['var_label'];
+                    let key = yearLabel + '_' + variableLabel;
+                    if(!groupByHelper[key]) {
+                        groupByHelper[key] = {};
+                        groupByHelper[key]['year'] = yearLabel;
+                        groupByHelper[key]['variable'] = variableLabel;
+                        groupByHelper[key]['count'] = currentValue['present'];
+                        accumulator.push(groupByHelper[key]);
+                    } else {
+                        groupByHelper[key]['count'] += currentValue['present'];
+                    }
+                    return accumulator;
+                }, []);
+
+                aggregatedData = aggregatedData.filter(o => o.variable !== '');
+
+                // update chart
+                chartData = [];
+                aggregatedData.forEach(e => {
+                    chartData.push([e.year, e.variable, e.count]);
+                })
+
+                // let filterArray = [this.selectedSettlementType.label + ' population', this.selectedPopulationGroup.label, this.selectedGender.label];
+                // filterArray = filterArray.filter(o => o.indexOf("All") === -1);
+                // let subtitle = 'Population aged 7 to 80 years';
+                // subtitle += (filterArray.length !== 0) ? ', ' + filterArray.join(', ') : '';
+                let max = Math.max(...chartData.map(o => o[2]));
+
+                mainChart.setOption({
+                    title: [{
+                        // text: this.selectedCountry,
+                    }],
+                    xAxis: [{
+                        data: this.yearList.filter(o => o !== 'All'),
+                    }, {
+                        data: this.yearList.filter(o => o !== 'All'),
+                    }],
+                    yAxis: {
+                        data: variableList,
+                    },
+                    visualMap: {
+                        max: max,
+                    },
+                    series: [{
+                        symbolSize: (val) => symbolSize(max, min, val),
+                        data: chartData
+                    }]
+                });
+
+                
+            },
+
+            onCountryChange: async function(selectedOption) {
+                this.selectedCountry = selectedOption;
+                this.yearList = this.countryYearList.filter(o => o.country === selectedOption).map(o => o.year);;
+                this.yearList.unshift('All');
+                this.selectedYear = 'All';
+                this.loadMainData();
+            },
+
+            onYearChange: async function(selectedOption) {
+                this.selectedYear = selectedOption;
+                this.loadMainData();
+            },
+
+            onChange: async function() {
+                this.loadMainData();
+            },
+
+            renderChart: function() {
+                mainChart = echarts.init(document.getElementById('chart'));
+                option = {
+                    title: [{
+                        text: '',
+                        top: 0,
+                        // textStyle: {
+                        //     color: "#4d4d4d",
+                        //     fontSize: "20"
+                        // }
+                    }],
+                    tooltip: {
+                        position: 'top',
+                        backgroundColor: "#ffffff",
+                        padding: 10,
+                        borderColor: '#eaeaea',
+                        borderWidth: 1,
+                        textStyle: {
+                            color: "#4d4d4d"
+                        },
+                        formatter: (params) => {
+                            // let template = "<strong>" + params.value[0] + ", " + params.value[1] + "</strong><br/>";
+                            let template = "";
+                            template = template + "<span>Variable: " + params.value[1] + "</span><br/>";
+                            template = template + "<span>Year: " + params.value[0] + "</span><br/>";
+                            template = template + "<span>Count: " + params.value[2] + "</span>";
+                            
+                            return template;
+                        }
+                    },
+                    animation: true,
+                    grid: {
+                        top: 50,
+                        bottom: 20,
+                        left: 400,
+                        right: 20
+                    },
+                    xAxis: [{
+                        type: 'category',
+                        position: 'bottom',
+                        // name: 'Year',
+                        nameLocation: 'middle',
+                        data: this.yearList.filter(o => o !== 'All'),
+                        splitArea: {
+                            show: false
+                        },
+                        axisLine: {
+                            show: false,
+                        },
+                        axisTick: {
+                            show: false
+                        },
+                        axisLabel: {
+                            interval: 0,
+                            fontSize: 10,
+                            color: "#4d4d4d",
+                        }
+                    }, {
+                        type: 'category',
+                        position: 'top',
+                        offset: -15,
+                        // name: 'Year',
+                        nameLocation: 'middle',
+                        data: this.yearList.filter(o => o !== 'All'),
+                        splitArea: {
+                            show: false
+                        },
+                        axisLine: {
+                            show: false,
+                        },
+                        axisTick: {
+                            show: false
+                        },
+                        axisLabel: {
+                            interval: 0,
+                            fontSize: 10,
+                            color: "#4d4d4d",
+                        }
+                    }],
+                    yAxis: {
+                        type: 'category',
+                        data: [],
+                        inverse: true,
+                        splitArea: {
+                            show: false
+                        },
+                        axisLine: {
+                            show: false,
+                        },
+                        axisTick: {
+                            show: false
+                        },
+                        axisLabel: {
+                            fontSize: 10,
+                            color: "#4d4d4d"
+                        }
+                    },
+                    toolbox: {
+                        show: true,
+                        showTitle: false,
+                        right: 10,
+                        feature: {
+                            mark: {
+                                show: true
+                            },
+                            saveAsImage: {
+                                show: true,
+                                title: 'save as image',
+                            }
+                        },
+                        tooltip: {
+                            show: true,
+                            backgroundColor: "#ffffff",
+                            padding: 5,
+                            borderColor: '#eaeaea',
+                            orderWidth: 1,
+                            textStyle: {
+                                fontSize: "12",
+                                color: "#4d4d4d",
+                                right: 10
+                            }
+                        }
+                    },
+                    visualMap: {
+                        show: false,
+                        min: 'dataMin',
+                        max: 'dataMax',
+                        calculable: true,
+                        itemHeight: 10,
+                        itemWidth: 10,
+                        orient: 'horizontal',
+                        color: ["#0F2F6E", "#4BB6C1", "#F7FBD4"],
+                        left: 'center',
+                        bottom: 0,
+                        textStyle: {
+                            fontSize: 10,
+                            color: "#4d4d4d"
+                        }
+                    },
+                    series: [{
+                        type: 'heatmap',
+                        data: [],
+                        label: {
+                            show: false
+                        },
+                        itemStyle: {
+                            borderColor: '#fff',
+                            borderWidth: 0.1,
+                            color: "#4BB6C1",
+                        },
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 10,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        }
+                    }]
+                };
+
+                mainChart.setOption(option);
+            }
+
+        }
+    })
+
+    async function dataFetch(dataUrl) {
+        let loadData = {};
+        await $.ajax({
+            url: dataUrl,
+            success: function(data) {
+                loadData = data;
+            },
+            error: function(error) {
+                console.log(error)
+            }
+        });
+        return loadData;
+    }
+
+    function customSort(items, key) {
+        items.sort(function(a, b) {
+            let nameA = (typeof a[key] === 'string') ? a[key].toUpperCase() : a[key];
+            let nameB = (typeof b[key] === 'string') ? b[key].toUpperCase() : b[key];
+            if (nameA < nameB) {
+                return -1;
+            }
+            if (nameA > nameB) {
+                return 1;
+            }
+            return 0;
+        });
+        return items;
+    }
+
+</script>
+</body>
+</html>
