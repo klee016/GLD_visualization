@@ -152,26 +152,31 @@
                 let fullData = responseObj.data;
                 this.yearList = [... new Set(fullData.map(o => o.year))];
 
+                console.log(fullData)
+
                 // countryDivision
                 fullData.forEach(o => o.countryDivision = o.country + " - " + o.admin_txt);
 
                 // disaggregation
                 fullData.forEach(o => o.disaggregation = o.countryDivision + ',' + o.sex + ',' + o.region + ',' + o.age + ',' + o.education);
 
+                console.log(this.selectedNumberType)
                 // normalize
                 if(this.selectedNumberType === 'share') {
                     fullData.forEach(o => o.B_emp = (o.B_emp_shr === "NA")? 0 : o.B_emp_shr);
                     fullData.forEach(o => o.B_unemp = (o.B_unemp_shr === "NA")? 0 : o.B_unemp_shr);
                     fullData.forEach(o => o.I_NILF = (o.I_NILF_shr === "NA")? 0 : o.I_NILF_shr);
                     fullData.forEach(o => o.sum = o.B_emp + o.B_unemp + o.I_NILF);
-                    fullData.forEach(o => Math.floor(o.B_emp = o.B_emp/o.sum*10000)/10000);
-                    fullData.forEach(o => Math.floor(o.B_unemp = o.B_unemp/o.sum*10000)/10000);
-                    fullData.forEach(o => Math.floor(o.I_NILF = o.I_NILF/o.sum*10000)/10000);
+                    fullData.forEach(o => o.B_emp = Math.floor(o.B_emp/o.sum*10000)/10000);
+                    fullData.forEach(o => o.B_unemp = Math.floor(o.B_unemp/o.sum*10000)/10000);
+                    fullData.forEach(o => o.I_NILF = Math.floor(o.I_NILF/o.sum*10000)/10000);
                 } else {
                     fullData.forEach(o => o.B_emp = (o.B_emp_tot === "NA")? 0 : o.B_emp_tot);
                     fullData.forEach(o => o.B_unemp = (o.B_unemp_tot === "NA")? 0 : o.B_unemp_tot);
                     fullData.forEach(o => o.I_NILF = (o.I_NILF_tot === "NA")? 0 : o.I_NILF_tot);
                 }
+
+                console.log(fullData)
 
                 // fill null data for empty years
                 this.yearList.forEach(year => {

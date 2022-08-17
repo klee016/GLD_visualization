@@ -171,9 +171,6 @@
                     fullData.forEach(o => o.I_NILF_dis = Math.floor(o.I_NILF_dis/o.sum*10000)/10000);
                     fullData.forEach(o => o.I_NILF_ret = Math.floor(o.I_NILF_ret/o.sum*10000)/10000);
                     fullData.forEach(o => o.I_NILF_oth = Math.floor(o.I_NILF_oth/o.sum*10000)/10000);
-                    fullData.forEach(o => {
-                        console.log(o.I_NILF_std + o.I_NILF_hkp + o.I_NILF_dis + o.I_NILF_ret + o.I_NILF_oth)
-                    })
                 } else {
                     fullData.forEach(o => o.I_NILF_std = (o.I_NILF_std_tot === "NA")? 0 : o.I_NILF_std_tot);
                     fullData.forEach(o => o.I_NILF_hkp = (o.I_NILF_hkp_tot === "NA")? 0 : o.I_NILF_hkp_tot);
