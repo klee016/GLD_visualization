@@ -8,6 +8,9 @@
 ### 2. ISIC_4
 * [Treemap](https://klee016.github.io/GLD_visualization/C1.classification_isic_treemap.html) - data error
 
+## Variable summmary
+* [Heatmap](https://klee016.github.io/GLD_visualization/V1.variable_summary_heatmap.html)
+
 ## GLD indicators (exploratory analysis)
 
 ### 1. GLD indicators
