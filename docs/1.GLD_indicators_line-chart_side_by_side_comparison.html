@@ -35,9 +35,9 @@
                 </div>
                 <!-- Country -->
                 <div class="col col-12 align-self-center">
-                    <label>Country - Admin division</label>
+                    <label>Country</label>
                     <div class="flex-grow-1 align-self-center mb-2">
-                        <multiselect v-model="selectedCountryDivision1" :multiple="false" :options="countryDivisionList" placeholder="Search" @select="onCountryDivisionChange1"></multiselect>
+                        <multiselect v-model="selectedCountry1" :multiple="false" :options="countryList" placeholder="Search" @select="onCountryChange1"></multiselect>
                     </div>
                 </div>
                 <!-- Disaggregation -->
@@ -73,9 +73,9 @@
                 </div>
                 <!-- Country -->
                 <div class="col col-12 align-self-center">
-                    <label>Country - Admin division</label>
+                    <label>Country</label>
                     <div class="flex-grow-1 align-self-center mb-2">
-                        <multiselect v-model="selectedCountryDivision2" :multiple="false" :options="countryDivisionList" placeholder="Search" @select="onCountryDivisionChange2"></multiselect>
+                        <multiselect v-model="selectedCountry2" :multiple="false" :options="countryList" placeholder="Search" @select="onCountryChange2"></multiselect>
                     </div>
                 </div>
                 <!-- Disaggregation -->
@@ -132,9 +132,8 @@
             ageList: [],
             educationList: [],
             countryList: [],
-            countryDivisionList: [],
-            selectedCountryDivision1: 'PHL - All',
-            selectedCountryDivision2: 'ZAF - All',
+            selectedCountry1: 'PHL',
+            selectedCountry2: 'ZAF',
             yearList: [],
             disaggregation_sex1: true,
             disaggregation_sex2: true,
@@ -164,8 +163,8 @@
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=education")]);
                 this.indicatorList = responseObjs[0].result.result_.features.map(function(o) {return{code: o.feature_name, label: o.feature_label}}); 
                 this.indicatorList.splice(0, 7);
-                this.countryDivisionList = responseObjs[1].data.map(o => o.country + " - " + o.admin_txt);
-                this.countryList = [...new Set(responseObjs[1].data.map(o => o.country))];
+                this.countryList = responseObjs[1].data.map(o => o.country);
+                // this.countryList = [...new Set(responseObjs[1].data.map(o => o.country))];
                 this.yearList = responseObjs[2].data.map(o => o.year);
                 this.sexList = responseObjs[3].data.map(o => o.sex);
                 this.regionList = responseObjs[4].data.map(o => o.region);
@@ -176,16 +175,14 @@
 
             loadMainData1: async function() {
 
-                let countryParam = this.selectedCountryDivision1.split(" - ")[0];
-                let adminDivisionParam = JSON.stringify(this.selectedCountryDivision1.split(" - ")[1]);
+                let countryParam = this.selectedCountry1;
                 let sexParams = (this.disaggregation_sex1 == false)? ['All'] : this.sexList.filter(o => o !== 'All');
                 let regionParams = (this.disaggregation_region1 == false)? ['All'] : this.regionList.filter(o => o !== 'All');
                 let ageParams = (this.disaggregation_age1 == false)? ['All'] : this.ageList.filter(o => o !== 'All');
                 let educationParams = (this.disaggregation_education1 == false)? ['All'] : this.educationList.filter(o => o !== 'All');
 
-                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&admin_txt=" + adminDivisionParam + "&sex=" + sexParams.join(',') + "&region=" + regionParams.join(',') + "&age=" + ageParams.join(',') + "&education=" + educationParams.join(',') + "&fields=year,country,admin_txt,sex,region,age,education," + this.selectedIndicator1.code);
+                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&sex=" + sexParams.join(',') + "&region=" + regionParams.join(',') + "&age=" + ageParams.join(',') + "&education=" + educationParams.join(',') + "&skill=All&fields=year,country,admin_txt,sex,region,age,education," + this.selectedIndicator1.code);
                 let fullData = responseObj.data;
-                fullData.forEach(o => o.countryDivision = o.country + " - " + o.admin_txt);
                 fullData.forEach(o => o.disaggregation = o.sex + ',' + o.region + ',' + o.age + ',' + o.education);
                 fullData.forEach(o => o.value = o[this.selectedIndicator1.code]);
                 fullData.forEach(o => o.sampleRatio = o[this.selectedIndicator1.code]);
@@ -237,7 +234,7 @@
                     });
                 }
                 
-                let chartTitle = this.selectedIndicator1.label + ', ' + this.selectedCountryDivision1;            
+                let chartTitle = this.selectedIndicator1.label + ', ' + this.selectedCountry1;            
                 let legend = [];
                 chartDisaggregations1.forEach(chartDisaggregation => {
                     legend.push(chartDisaggregation.filter(o => o !== 'All').join(','));
@@ -263,16 +260,14 @@
 
             loadMainData2: async function() {
 
-                let countryParam = this.selectedCountryDivision2.split(" - ")[0];
-                let adminDivisionParam = JSON.stringify(this.selectedCountryDivision2.split(" - ")[1]);
+                let countryParam = this.selectedCountry2;
                 let sexParams = (this.disaggregation_sex2 == false)? ['All'] : this.sexList.filter(o => o !== 'All');
                 let regionParams = (this.disaggregation_region2 == false)? ['All'] : this.regionList.filter(o => o !== 'All');
                 let ageParams = (this.disaggregation_age2 == false)? ['All'] : this.ageList.filter(o => o !== 'All');
                 let educationParams = (this.disaggregation_education2 == false)? ['All'] : this.educationList.filter(o => o !== 'All');
 
-                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&admin_txt=" + adminDivisionParam + "&sex=" + sexParams.join(',') + "&region=" + regionParams.join(',') + "&age=" + ageParams.join(',') + "&education=" + educationParams.join(',') + "&fields=year,country,admin_txt,sex,region,age,education," + this.selectedIndicator2.code);
+                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&sex=" + sexParams.join(',') + "&region=" + regionParams.join(',') + "&age=" + ageParams.join(',') + "&education=" + educationParams.join(',') + "&skill=All&fields=year,country,admin_txt,sex,region,age,education," + this.selectedIndicator2.code);
                 let fullData = responseObj.data;
-                fullData.forEach(o => o.countryDivision = o.country + " - " + o.admin_txt);
                 fullData.forEach(o => o.disaggregation = o.sex + ',' + o.region + ',' + o.age + ',' + o.education);
                 fullData.forEach(o => o.value = o[this.selectedIndicator2.code]);
                 fullData.forEach(o => o.sampleRatio = o[this.selectedIndicator2.code]);
@@ -324,7 +319,7 @@
                     });
                 }
                 
-                let chartTitle = this.selectedIndicator2.label + ', ' + this.selectedCountryDivision2;            
+                let chartTitle = this.selectedIndicator2.label + ', ' + this.selectedCountry2;            
                 let legend = [];
                 chartDisaggregations2.forEach(chartDisaggregation => {
                     legend.push(chartDisaggregation.filter(o => o !== 'All').join(','));
@@ -348,13 +343,13 @@
                 });
             },
 
-            onCountryDivisionChange1: function(countryDivision) {
-                this.selectedCountryDivision1 = countryDivision;
+            onCountryChange1: function(country) {
+                this.selectedCountry1 = country;
                 this.loadMainData1()
             },
 
-            onCountryDivisionChange2: function(countryDivision) {
-                this.selectedCountryDivision2 = countryDivision;
+            onCountryChange2: function(country) {
+                this.selectedCountry2 = country;
                 this.loadMainData2()
             },
 
