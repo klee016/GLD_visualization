@@ -155,7 +155,7 @@
         methods: {
             loadCodeLists: async function() {
                 let responseObjs = await Promise.all([dataFetch(APIUrl + "info/central/WLD_2022_GLD-indicators"),
-                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=country,admin_txt"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=country"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=year"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=sex"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=region"),
@@ -181,7 +181,7 @@
                 let ageParams = (this.disaggregation_age1 == false)? ['All'] : this.ageList.filter(o => o !== 'All');
                 let educationParams = (this.disaggregation_education1 == false)? ['All'] : this.educationList.filter(o => o !== 'All');
 
-                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&sex=" + sexParams.join(',') + "&region=" + regionParams.join(',') + "&age=" + ageParams.join(',') + "&education=" + educationParams.join(',') + "&skill=All&fields=year,country,admin_txt,sex,region,age,education," + this.selectedIndicator1.code);
+                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&sex=" + sexParams.join(',') + "&region=" + regionParams.join(',') + "&age=" + ageParams.join(',') + "&education=" + educationParams.join(',') + "&skill=All&fields=year,country,sex,region,age,education," + this.selectedIndicator1.code);
                 let fullData = responseObj.data;
                 fullData.forEach(o => o.disaggregation = o.sex + ',' + o.region + ',' + o.age + ',' + o.education);
                 fullData.forEach(o => o.value = o[this.selectedIndicator1.code]);
@@ -266,7 +266,7 @@
                 let ageParams = (this.disaggregation_age2 == false)? ['All'] : this.ageList.filter(o => o !== 'All');
                 let educationParams = (this.disaggregation_education2 == false)? ['All'] : this.educationList.filter(o => o !== 'All');
 
-                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&sex=" + sexParams.join(',') + "&region=" + regionParams.join(',') + "&age=" + ageParams.join(',') + "&education=" + educationParams.join(',') + "&skill=All&fields=year,country,admin_txt,sex,region,age,education," + this.selectedIndicator2.code);
+                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&sex=" + sexParams.join(',') + "&region=" + regionParams.join(',') + "&age=" + ageParams.join(',') + "&education=" + educationParams.join(',') + "&skill=All&fields=year,country,sex,region,age,education," + this.selectedIndicator2.code);
                 let fullData = responseObj.data;
                 fullData.forEach(o => o.disaggregation = o.sex + ',' + o.region + ',' + o.age + ',' + o.education);
                 fullData.forEach(o => o.value = o[this.selectedIndicator2.code]);
