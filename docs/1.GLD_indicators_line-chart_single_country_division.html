@@ -53,7 +53,7 @@
             <label>Mark small sample estimates (sample size / WAP sample size)</label>
             <div class="flex-grow-1 align-self-center mx-2">
                 <!-- <vue-slider class="mt-2" v-model="selectedSampleRatioRange" :interval="0.001" :min="0" :max="maxSampleRatio" :dot-options="[{disabled: false}, {disabled: true}]" :order="false" :lazy="true" @change="onMaskChange"></vue-slider> -->
-                <vue-slider class="mt-2" v-model="selectedMaxSampleRatio" :interval="0.001" :min="0" :max="maxSampleRatio" :lazy="true" @change="onMaskChange"></vue-slider>
+                <vue-slider class="mt-2" v-model="selectedMaxSampleRatio" :interval="0.01" :min="0" :max="maxSampleRatio" :lazy="true" @change="onMaskChange"></vue-slider>
             </div>
         </div>
     </div>
@@ -93,7 +93,7 @@
             ageList: [],
             educationList: [],
             countryList: [],
-            // countryDivisionList: [],
+
             selectedCountry: 'PHL',
             yearList: [],
             disaggregation_sex: false,
@@ -101,7 +101,7 @@
             disaggregation_age: false,
             disaggregation_education: true,
             selectedMaxSampleRatio: 0.02,
-            maxSampleRatio: 0.1,
+            maxSampleRatio: 0.3,
         },
         async mounted() {
             APIUrl = baseUrl + "/index.php/api/tables/";
@@ -121,7 +121,6 @@
                 this.indicatorList = responseObjs[0].result.result_.features.map(function(o) {return{code: o.feature_name, label: o.feature_label}}); 
                 this.indicatorList.splice(0, 7);
                 this.countryList = responseObjs[1].data.map(o => o.country);
-                // this.countryList = [...new Set(responseObjs[1].data.map(o => o.country))];
                 this.yearList = responseObjs[2].data.map(o => o.year);
                 this.sexList = responseObjs[3].data.map(o => o.sex);
                 this.regionList = responseObjs[4].data.map(o => o.region);
@@ -133,7 +132,6 @@
             loadMainData: async function() {
 
                 let countryParam = this.selectedCountry;
-                // let adminDivisionParam = JSON.stringify(this.selectedCountryDivision.split(" - ")[1]);
                 let sexParams = (this.disaggregation_sex == false)? ['All'] : this.sexList.filter(o => o !== 'All');
                 let regionParams = (this.disaggregation_region == false)? ['All'] : this.regionList.filter(o => o !== 'All');
                 let ageParams = (this.disaggregation_age == false)? ['All'] : this.ageList.filter(o => o !== 'All');
@@ -147,7 +145,6 @@
                 
                 responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&sex=" + sexParams.join(',') + "&region=" + regionParams.join(',') + "&age=" + ageParams.join(',') + "&education=" + educationParams.join(',') + "&skill=All&fields=year,country,admin_txt,sex,region,age,education," + indicatorParams);
                 let fullData = responseObj.data;
-                // fullData.forEach(o => o.countryDivision = o.country + " - " + o.admin_txt);
                 fullData.forEach(o => o.disaggregation = o.sex + ',' + o.region + ',' + o.age + ',' + o.education);
                 fullData.forEach(o => o.value = o[this.selectedIndicator.code]);
                 fullData.forEach(o => o.sampleRatio = o[sampleIndicator]/wapSampleSize[o.year]);
@@ -198,8 +195,7 @@
                         );
                     });
                 }
-                
-                // let chartTitle = this.selectedIndicator.label + ', ' + this.selectedCountryDivision;           
+      
                 let chartTitle = this.selectedIndicator.label + ', ' + this.selectedCountry;           
                 let legend = [];
                 chartDisaggregations.forEach(chartDisaggregation => {
@@ -229,12 +225,13 @@
             onMaskChange: function() {
                 let indicatorType = this.selectedIndicator.code.slice(-3);
                 let dimension;
+
                 if (indicatorType === 'smp') {
-                    dimension = 11;
+                    dimension = 9;
                 } else if (indicatorType === 'tot') {
-                    dimension = 12;
+                    dimension = 10;
                 } else if (indicatorType === 'shr') {
-                    dimension = 12;
+                    dimension = 10;
                 } else {
                     return;
                 }
