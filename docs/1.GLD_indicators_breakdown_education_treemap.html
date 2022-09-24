@@ -31,9 +31,9 @@
         </div>
         <!-- Country -->
         <div class="col col-6 align-self-center">
-            <label>Country - Admin division</label>
+            <label>Country</label>
             <div class="align-self-center mb-2">
-                <multiselect v-model="selectedCountryDivision" :multiple="false" :options="countryDivisionList" placeholder="Search" @select="onCountryDivisionChange"></multiselect>
+                <multiselect v-model="selectedCountry" :multiple="false" :options="countryList" placeholder="Search" @select="onCountryChange"></multiselect>
             </div>
         </div>
     </div>
@@ -70,8 +70,7 @@
             ageList: [],
             educationList: [],
             countryList: [],
-            countryDivisionList: [],
-            selectedCountryDivision: '',
+            selectedCountry: '',
             yearList: [],
         },
         async mounted() {
@@ -83,7 +82,7 @@
         methods: {
             loadCodeLists: async function() {
                 let responseObjs = await Promise.all([dataFetch(APIUrl + "info/central/WLD_2022_GLD-indicators"),
-                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=country,admin_txt"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=country"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=year"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=sex"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=region"),
@@ -93,26 +92,23 @@
                 this.indicatorList.splice(0, 7);
                 this.indicatorList = this.indicatorList.filter(o => o.label.endsWith(" total"));
 
-                this.countryDivisionList = responseObjs[1].data.map(o => o.country + " - " + o.admin_txt);
-                this.countryList = [...new Set(responseObjs[1].data.map(o => o.country))];
+                this.countryList = responseObjs[1].data.map(o => o.country);
                 this.yearList = responseObjs[2].data.map(o => o.year);
                 this.sexList = responseObjs[3].data.map(o => o.sex);
                 this.regionList = responseObjs[4].data.map(o => o.region);
                 this.ageList = responseObjs[5].data.map(o => o.age);
                 this.educationList = responseObjs[6].data.map(o => o.education);
-                this.selectedCountryDivision = "PHL - All";
+                this.selectedCountry = "PHL";
             },
 
             loadMainData: async function() {
-                let countryParam = this.selectedCountryDivision.split(" - ")[0];
-                let adminDivisionParam = this.selectedCountryDivision.split(" - ")[1];
+                let countryParam = this.selectedCountry;
                 let sexParams = this.sexList.join(',');
                 let regionParams = this.regionList.join(',');
                 let ageParams = this.ageList.join(',');
                 let educationParams = this.educationList.join(',');
-                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&admin_txt=" + adminDivisionParam + "&sex=" + sexParams + "&region=" + regionParams + "&age=" + ageParams + "&education=" + educationParams + "&fields=year,country,admin_txt,sex,region,age,education," + this.selectedIndicator.code);
+                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&sex=" + sexParams + "&region=" + regionParams + "&age=" + ageParams + "&education=" + educationParams + "&skill=All&fields=year,country,sex,region,age,education," + this.selectedIndicator.code);
                 let fullData = responseObj.data;
-                fullData.forEach(o => o.countryDivision = o.country + " - " + o.admin_txt);
                 fullData.forEach(o => o.value = o[this.selectedIndicator.code]);
 
                 this.yearList = [... new Set(fullData.map(o => o.year))];
@@ -170,7 +166,7 @@
                     });
 
                     optionsList.push({
-                        title: {text: this.selectedIndicator.label + ', ' + this.selectedCountryDivision + ' (' + year +  ')'},
+                        title: {text: this.selectedIndicator.label + ', ' + this.selectedCountry + ' (' + year +  ')'},
                         series: [
                             {data: chartDataset}
                         ]
@@ -189,8 +185,8 @@
                 this.loadMainData();
             },
 
-            onCountryDivisionChange: async function(selectedOption) {
-                this.selectedCountryDivision = selectedOption;
+            onCountryChange: async function(selectedOption) {
+                this.selectedCountry = selectedOption;
                 this.loadMainData();
             },
 
