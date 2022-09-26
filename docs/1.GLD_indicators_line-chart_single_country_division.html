@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>GLD indicators - single country/division</title>
+    <title>GLD indicators - single country</title>
     <!-- including ECharts file -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js" integrity="sha256-oZEaXgWqxLmr12VzCK9eGOuHIi3XPZ/KsJXXFjtyvZA=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -20,7 +20,7 @@
 <div id = 'main' class="container-fluid border" style="width:1000px;height:750px">
     <!-- Title -->
     <div class="row mt-2 mx-3 px-2">
-        <p class="fs-3 text-center">GLD indicators - single country/division</p>
+        <p class="fs-3 text-center">GLD indicators - single country</p>
     </div>
     <!-- Main filters -->
     <div class="row mx-2 px-2 py-2 border">
@@ -33,9 +33,9 @@
         </div>
         <!-- Country -->
         <div class="col col-6 align-self-center">
-            <label>Country - Admin division</label>
+            <label>Country</label>
             <div class="flex-grow-1 align-self-center mb-2">
-                <multiselect v-model="selectedCountryDivision" :multiple="false" :options="countryDivisionList" placeholder="Search" @select="onCountryDivisionChange"></multiselect>
+                <multiselect v-model="selectedCountry" :multiple="false" :options="countryList" placeholder="Search" @select="onCountryChange"></multiselect>
             </div>
         </div>
         <!-- Disaggregation -->
@@ -53,7 +53,7 @@
             <label>Mark small sample estimates (sample size / WAP sample size)</label>
             <div class="flex-grow-1 align-self-center mx-2">
                 <!-- <vue-slider class="mt-2" v-model="selectedSampleRatioRange" :interval="0.001" :min="0" :max="maxSampleRatio" :dot-options="[{disabled: false}, {disabled: true}]" :order="false" :lazy="true" @change="onMaskChange"></vue-slider> -->
-                <vue-slider class="mt-2" v-model="selectedMaxSampleRatio" :interval="0.001" :min="0" :max="maxSampleRatio" :lazy="true" @change="onMaskChange"></vue-slider>
+                <vue-slider class="mt-2" v-model="selectedMaxSampleRatio" :interval="0.01" :min="0" :max="maxSampleRatio" :lazy="true" @change="onMaskChange"></vue-slider>
             </div>
         </div>
     </div>
@@ -93,15 +93,15 @@
             ageList: [],
             educationList: [],
             countryList: [],
-            countryDivisionList: [],
-            selectedCountryDivision: 'PHL - All',
+
+            selectedCountry: 'PHL',
             yearList: [],
             disaggregation_sex: false,
             disaggregation_region: false,
             disaggregation_age: false,
             disaggregation_education: true,
             selectedMaxSampleRatio: 0.02,
-            maxSampleRatio: 0.1,
+            maxSampleRatio: 0.3,
         },
         async mounted() {
             APIUrl = baseUrl + "/index.php/api/tables/";
@@ -112,7 +112,7 @@
         methods: {
             loadCodeLists: async function() {
                 let responseObjs = await Promise.all([dataFetch(APIUrl + "info/central/WLD_2022_GLD-indicators"),
-                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=country,admin_txt"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=country"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=year"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=sex"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=region"),
@@ -120,8 +120,7 @@
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=education")]);
                 this.indicatorList = responseObjs[0].result.result_.features.map(function(o) {return{code: o.feature_name, label: o.feature_label}}); 
                 this.indicatorList.splice(0, 7);
-                this.countryDivisionList = responseObjs[1].data.map(o => o.country + " - " + o.admin_txt);
-                this.countryList = [...new Set(responseObjs[1].data.map(o => o.country))];
+                this.countryList = responseObjs[1].data.map(o => o.country);
                 this.yearList = responseObjs[2].data.map(o => o.year);
                 this.sexList = responseObjs[3].data.map(o => o.sex);
                 this.regionList = responseObjs[4].data.map(o => o.region);
@@ -132,22 +131,20 @@
 
             loadMainData: async function() {
 
-                let countryParam = this.selectedCountryDivision.split(" - ")[0];
-                let adminDivisionParam = JSON.stringify(this.selectedCountryDivision.split(" - ")[1]);
+                let countryParam = this.selectedCountry;
                 let sexParams = (this.disaggregation_sex == false)? ['All'] : this.sexList.filter(o => o !== 'All');
                 let regionParams = (this.disaggregation_region == false)? ['All'] : this.regionList.filter(o => o !== 'All');
                 let ageParams = (this.disaggregation_age == false)? ['All'] : this.ageList.filter(o => o !== 'All');
                 let educationParams = (this.disaggregation_education == false)? ['All'] : this.educationList.filter(o => o !== 'All');
                 let responseObj;
 
-                responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&admin_txt=" + adminDivisionParam + "&sex=All" + "&region=All" + "&age=All" + "&education=All" + "&fields=year,country,admin_txt,A_wap_smp");
+                responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&sex=All" + "&region=All" + "&age=All" + "&education=All" + "&skill=All&fields=year,country,A_wap_smp");
                 let wapSampleSize = responseObj.data.reduce((a, v) => ({ ...a, [v.year]: v.A_wap_smp}), {});
                 let sampleIndicator = this.selectedIndicator.code.slice(0, -4) + '_smp';
                 let indicatorParams = [sampleIndicator, this.selectedIndicator.code].join(',');
                 
-                responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&admin_txt=" + adminDivisionParam + "&sex=" + sexParams.join(',') + "&region=" + regionParams.join(',') + "&age=" + ageParams.join(',') + "&education=" + educationParams.join(',') + "&fields=year,country,admin_txt,sex,region,age,education," + indicatorParams);
+                responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParam + "&sex=" + sexParams.join(',') + "&region=" + regionParams.join(',') + "&age=" + ageParams.join(',') + "&education=" + educationParams.join(',') + "&skill=All&fields=year,country,sex,region,age,education," + indicatorParams);
                 let fullData = responseObj.data;
-                fullData.forEach(o => o.countryDivision = o.country + " - " + o.admin_txt);
                 fullData.forEach(o => o.disaggregation = o.sex + ',' + o.region + ',' + o.age + ',' + o.education);
                 fullData.forEach(o => o.value = o[this.selectedIndicator.code]);
                 fullData.forEach(o => o.sampleRatio = o[sampleIndicator]/wapSampleSize[o.year]);
@@ -200,8 +197,8 @@
                         );
                     });
                 }
-                
-                let chartTitle = this.selectedIndicator.label + ', ' + this.selectedCountryDivision;           
+      
+                let chartTitle = this.selectedIndicator.label + ', ' + this.selectedCountry;           
                 let legend = [];
                 chartDisaggregations.forEach(chartDisaggregation => {
                     legend.push(chartDisaggregation.filter(o => o !== 'All').join(','));
@@ -230,12 +227,13 @@
             onMaskChange: function() {
                 let indicatorType = this.selectedIndicator.code.slice(-3);
                 let dimension;
+
                 if (indicatorType === 'smp') {
-                    dimension = 11;
+                    dimension = 9;
                 } else if (indicatorType === 'tot') {
-                    dimension = 12;
+                    dimension = 10;
                 } else if (indicatorType === 'shr') {
-                    dimension = 12;
+                    dimension = 10;
                 } else {
                     return;
                 }
@@ -254,8 +252,8 @@
 
             },
 
-            onCountryDivisionChange: function(countryDivision) {
-                this.selectedCountryDivision = countryDivision;
+            onCountryChange: function(country) {
+                this.selectedCountry = country;
                 this.loadMainData()
             },
 

@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>GLD indicators - multiple countries/divisions</title>
+    <title>GLD indicators - multiple countries</title>
     <!-- including ECharts file -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js" integrity="sha256-oZEaXgWqxLmr12VzCK9eGOuHIi3XPZ/KsJXXFjtyvZA=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -18,7 +18,7 @@
 <div id = 'main' class="container-fluid border" style="width:1000px;height:700px">
     <!-- Title -->
     <div class="row mt-2 mx-3 px-2">
-        <p class="fs-3 text-center">GLD indicators - multiple countries/divisions</p>
+        <p class="fs-3 text-center">GLD indicators - multiple countries</p>
     </div>
     <!-- Main filters -->
     <div class="row mx-2 px-2 py-2 border">
@@ -58,9 +58,9 @@
             </select>
         </div>
         <!-- Country -->
-        <div class="align-self-center">Country - Admin division</div>
+        <div class="align-self-center">Country</div>
         <div class="flex-grow-1 align-self-center mb-2">
-            <multiselect v-model="selectedCountryDivisions" :multiple="true" :options="countryDivisionList" placeholder="Search" @select="onCountryDivisionSelect" @remove="onCountryDivisionRemove"></multiselect>
+            <multiselect v-model="selectedCountries" :multiple="true" :options="countryList" placeholder="Search" @select="onCountrySelect" @remove="onCountryRemove"></multiselect>
         </div>
     </div>
 
@@ -83,7 +83,7 @@
     let mainChart = null;
     let chartDataset = [];
     let chartSeries = [];
-    let chartCountryDivisions = [];
+    let chartCountries = [];
 
     new Vue({
         el: '#main',
@@ -102,21 +102,20 @@
             educationList: [],
             selectedEducation: 'All',
             countryList: [],
-            countryDivisionList: [],
-            selectedCountryDivisions: ["PHL - All", "PHL - Central Luzon", "ZAF - All", "ZAF - Limpopo"],
+            selectedCountries: ["BRA", "IDN", "PHL", "ZAF"],
             yearList: [],
         },
         async mounted() {
             APIUrl = baseUrl + "/index.php/api/tables/";
             await this.loadCodeLists();
-            chartCountryDivisions = this.selectedCountryDivisions;
+            chartCountries = this.selectedCountries;
             this.renderChart();
             await this.loadMainData();
         },
         methods: {
             loadCodeLists: async function() {
                 let responseObjs = await Promise.all([dataFetch(APIUrl + "info/central/WLD_2022_GLD-indicators"),
-                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=country,admin_txt"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=country"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=year"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=sex"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=region"),
@@ -124,7 +123,7 @@
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=education")]);
                 this.indicatorList = responseObjs[0].result.result_.features.map(function(o) {return{code: o.feature_name, label: o.feature_label}}); 
                 this.indicatorList.splice(0, 7);
-                this.countryDivisionList = responseObjs[1].data.map(o => o.country + " - " + o.admin_txt);
+                this.countryList = responseObjs[1].data.map(o => o.country);
                 this.countryList = [...new Set(responseObjs[1].data.map(o => o.country))];
                 this.yearList = responseObjs[2].data.map(o => o.year);
                 this.sexList = responseObjs[3].data.map(o => o.sex);
@@ -135,15 +134,12 @@
             },
 
             loadMainData: async function() {
-                let countryParams = chartCountryDivisions.map(o => o.split(" - ")[0]).join(",");
-                let adminDivisionParams = chartCountryDivisions.map(o => JSON.stringify(o.split(" - ")[1])).join(",");
+                let countryParams = chartCountries.join(",");
                 if(countryParams === '') {
                     countryParams = 'n/a';
-                    adminDivisionParams = 'n/a';
                 }
-                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParams + "&admin_txt=" + adminDivisionParams + "&sex=" + this.selectedSex + "&region=" + this.selectedRegion + "&age=" + this.selectedAge + "&education=" + this.selectedEducation + "&fields=year,country,admin_txt," + this.selectedIndicator.code);
+                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParams + "&sex=" + this.selectedSex + "&region=" + this.selectedRegion + "&age=" + this.selectedAge + "&education=" + this.selectedEducation + "&skill=All&fields=year,country," + this.selectedIndicator.code);
                 let fullData = responseObj.data;
-                fullData.forEach(o => o.countryDivision = o.country + " - " + o.admin_txt);
                 fullData.forEach(o => o.value = o[this.selectedIndicator.code]);
                 fullData.forEach(o => o.sampleRatio = o[this.selectedIndicator.code]);
                 let noData = false;
@@ -162,22 +158,22 @@
                         source: customSort(fullData, 'year')
                     }];
                     chartSeries = [];
-                    chartCountryDivisions.forEach(countryDivision => {
+                    chartCountries.forEach(country => {
                         chartDataset.push(
                             {
-                                id: 'dataset_' + countryDivision,
+                                id: 'dataset_' + country,
                                 fromDatasetId: 'dataset_full',
                                 transform: {
                                     type: 'filter',
-                                    config: {dimension: 'countryDivision', '=': countryDivision}
+                                    config: {dimension: 'country', '=': country}
                                 }
                             }
                         );
                         chartSeries.push(
                             {
-                                name: countryDivision,
+                                name: country,
                                 type: 'line',
-                                datasetId: 'dataset_' + countryDivision,
+                                datasetId: 'dataset_' + country,
                                 // showSymbol: false,
                                 encode: {
                                     x: 'year',
@@ -210,7 +206,7 @@
                         show: noData
                     }],
                     legend: {
-                        data: chartCountryDivisions,
+                        data: chartCountries,
                     },
                     dataset: chartDataset,
                     series: chartSeries
@@ -222,16 +218,16 @@
                 this.loadMainData();
             },
 
-            onCountryDivisionSelect: function(countryDivision) {
-                if(!chartCountryDivisions.includes(countryDivision)) {
-                    chartCountryDivisions = chartCountryDivisions.filter(o => o !== countryDivision)
-                    chartCountryDivisions.push(countryDivision);
+            onCountrySelect: function(country) {
+                if(!chartCountries.includes(country)) {
+                    chartCountries = chartCountries.filter(o => o !== country)
+                    chartCountries.push(country);
                 }
                 this.loadMainData()
             },
 
-            onCountryDivisionRemove: function(countryDivision) {
-                chartCountryDivisions = chartCountryDivisions.filter(o => o !== countryDivision)
+            onCountryRemove: function(country) {
+                chartCountries = chartCountries.filter(o => o !== country)
                 this.loadMainData()
             },
 

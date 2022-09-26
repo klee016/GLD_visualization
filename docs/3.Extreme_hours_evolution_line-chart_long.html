@@ -42,10 +42,10 @@
             <label>Education</label>
             <multiselect v-model="selectedEducations" :multiple="true" :max="educationSelectionMax" :limit="2" :allow-empty="false" :options="educationList" @select="onEducationSelect" @remove="onEducationRemove"><span slot="maxElements">{{maxElementsText}}</span></multiselect>
         </div>
-        <!-- Country/Division -->
+        <!-- Country -->
         <div class="d-grid col-9 align-self-center mb-2">
-            <label>Country - Admin division</label>
-            <multiselect v-model="selectedCountryDivisions" :multiple="true" :max="countryDivisionSelectionMax" :limit="4" :allow-empty="false" :options="countryDivisionList" placeholder="Search" @select="onCountryDivisionSelect" @remove="onCountryDivisionRemove"><span slot="maxElements">{{maxElementsText}}</span></multiselect>
+            <label>Country</label>
+            <multiselect v-model="selectedCountries" :multiple="true" :max="countrySelectionMax" :limit="4" :allow-empty="false" :options="countryList" placeholder="Search" @select="onCountrySelect" @remove="onCountryRemove"><span slot="maxElements">{{maxElementsText}}</span></multiselect>
         </div>
         <!-- Share/Total -->
         <div class="d-grid col-3 mt-3 align-self-center">
@@ -79,7 +79,7 @@
     let chartRegions = [];
     let chartAges = [];
     let chartEducations = [];
-    let chartCountryDivisions = [];
+    let chartCountries = [];
     let chartFacets = [];
     let numFacets = 1;
 
@@ -98,21 +98,20 @@
             educationList: [],
             selectedEducations: ['All'],
             countryList: [],
-            countryDivisionList: [],
-            selectedCountryDivisions: ["PHL - All", "ZAF - All"],
+            selectedCountries: ["PHL", "ZAF"],
             yearList: [],
             sexSelectionMax: 3,
             regionSelectionMax: 3,
             ageSelectionMax: 3,
             educationSelectionMax: 3,
-            countryDivisionSelectionMax: 3,
+            countrySelectionMax: 3,
             maxElementsText: "Maximum combinations of options selected.",
             selectedNumberType: 'total',
         },
         async mounted() {
             APIUrl = baseUrl + "/index.php/api/tables/";
             await this.loadCodeLists();
-            chartCountryDivisions = this.selectedCountryDivisions;
+            chartCountries = this.selectedCountries;
             chartSexes = this.selectedSexes;
             chartRegions = this.selectedRegions;
             chartAges = this.selectedAges;
@@ -124,13 +123,13 @@
         methods: {
             loadCodeLists: async function() {
                 let responseObjs = await Promise.all([dataFetch(APIUrl + "info/central/WLD_2022_GLD-indicators"),
-                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=country,admin_txt"),
+                                                      dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=country"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=year"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=sex"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=region"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=age"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=education")]);
-                this.countryDivisionList = responseObjs[1].data.map(o => o.country + " - " + o.admin_txt);
+                this.countryList = responseObjs[1].data.map(o => o.country + " - " + o.admin_txt);
                 this.countryList = [...new Set(responseObjs[1].data.map(o => o.country))];
                 this.yearList = responseObjs[2].data.map(o => o.year);
                 this.sexList = responseObjs[3].data.map(o => o.sex);
@@ -141,49 +140,45 @@
             },
 
             loadMainData: async function() {
-                let countryParams = chartCountryDivisions.map(o => o.split(" - ")[0]).join(",");
-                let adminDivisionParams = chartCountryDivisions.map(o => JSON.stringify(o.split(" - ")[1])).join(",");
+                let countryParams = chartCountries.join(",");
                 let sexParams = chartSexes.join(',');
                 let regionParams = chartRegions.join(',');
                 let ageParams = chartAges.join(',');
                 let educationParams = chartEducations.join(',');
-                let indicatorParams = (this.selectedNumberType === 'share')? 'C_excemp_shr,C_undemp_shr' : 'C_excemp_tot,C_undemp_tot';
-                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParams + "&admin_txt=" + adminDivisionParams + "&sex=" + sexParams + "&region=" + regionParams + "&age=" + ageParams + "&education=" + educationParams + "&fields=year,country,admin_txt,sex,region,age,education," + indicatorParams);
+                let indicatorParams = (this.selectedNumberType === 'share')? 'C_exc48_shr,C_und30_shr' : 'C_exc48_tot,C_und30_tot';
+                let responseObj = await dataFetch(APIUrl + "data/central/WLD_2022_GLD-indicators/10000?country=" + countryParams + "&sex=" + sexParams + "&region=" + regionParams + "&age=" + ageParams + "&education=" + educationParams + "&skill=All&fields=year,country,sex,region,age,education," + indicatorParams);
                 let fullData = responseObj.data;
                 this.yearList = [... new Set(fullData.map(o => o.year))];
 
-                // countryDivision
-                fullData.forEach(o => o.countryDivision = o.country + " - " + o.admin_txt);
-
                 // disaggregation
-                fullData.forEach(o => o.disaggregation = o.countryDivision + ',' + o.sex + ',' + o.region + ',' + o.age + ',' + o.education);
+                fullData.forEach(o => o.disaggregation = o.country + ',' + o.sex + ',' + o.region + ',' + o.age + ',' + o.education);
 
                 // normalize
                 if(this.selectedNumberType === 'share') {
-                    fullData.forEach(o => o.C_excemp = (o.C_excemp_shr === "NA")? null : o.C_excemp_shr);
-                    fullData.forEach(o => o.C_undemp = (o.C_undemp_shr === "NA")? null : o.C_undemp_shr);
+                    fullData.forEach(o => o.C_excemp = (o.C_exc48_shr === "NA")? null : o.C_exc48_shr);
+                    fullData.forEach(o => o.C_undemp = (o.C_und30_shr === "NA")? null : o.C_und30_shr);
                 } else {
-                    fullData.forEach(o => o.C_excemp = (o.C_excemp_tot === "NA")? null : o.C_excemp_tot);
-                    fullData.forEach(o => o.C_undemp = (o.C_undemp_tot === "NA")? null : o.C_undemp_tot);
+                    fullData.forEach(o => o.C_excemp = (o.C_exc48_tot === "NA")? null : o.C_exc48_tot);
+                    fullData.forEach(o => o.C_undemp = (o.C_und30_tot === "NA")? null : o.C_und30_tot);
                 }
 
                 // fill null data for empty years
                 this.yearList.forEach(year => {
-                    chartCountryDivisions.forEach(countryDivision => {
+                    chartCountries.forEach(country => {
                         chartSexes.forEach(sex => {
                             chartRegions.forEach(region => {
                                 chartAges.forEach(age => {
                                     chartEducations.forEach(education => {
-                                        if(fullData.filter(o => o.year === year && o.countryDivision === countryDivision && o.sex === sex && o.region === region && o.age === age && o.education === education).length === 0) {
+                                        if(fullData.filter(o => o.year === year && o.country === country && o.sex === sex && o.region === region && o.age === age && o.education === education).length === 0) {
                                             fullData.push(
                                                 {
                                                     year: year,
-                                                    countryDivision: countryDivision,
+                                                    country: country,
                                                     sex: sex,
                                                     region: region,
                                                     age: age,
                                                     education: education,
-                                                    disaggregation: countryDivision + ',' + sex + ',' + region + ',' + age + ',' + education,
+                                                    disaggregation: country + ',' + sex + ',' + region + ',' + age + ',' + education,
                                                     C_excemp: null,
                                                     C_undemp: null
                                                 }
@@ -306,40 +301,40 @@
             },
 
             setChartFacets: function() {
-                chartFacets = cartesian(chartCountryDivisions, chartSexes, chartRegions, chartAges, chartEducations);
+                chartFacets = cartesian(chartCountries, chartSexes, chartRegions, chartAges, chartEducations);
                 numFacets = chartFacets.length;
                 if(numFacets >= 3) {
                     this.sexSelectionMax = chartSexes.length;
                     this.regionSelectionMax = chartRegions.length;
                     this.ageSelectionMax = chartAges.length;
                     this.educationSelectionMax = chartEducations.length;
-                    this.countryDivisionSelectionMax = chartCountryDivisions.length;
+                    this.countrySelectionMax = chartCountries.length;
                 }
             },
 
             resetChartFacets: function() {
-                chartFacets = cartesian(chartCountryDivisions, chartSexes, chartRegions, chartAges, chartEducations);
+                chartFacets = cartesian(chartCountries, chartSexes, chartRegions, chartAges, chartEducations);
                 numFacets = chartFacets.length;
                 if(numFacets < 3) {
                     this.sexSelectionMax = 3;
                     this.regionSelectionMax = 3;
                     this.ageSelectionMax = 3;
                     this.educationSelectionMax = 3;
-                    this.countryDivisionSelectionMax = 3;
+                    this.countrySelectionMax = 3;
                 }
             },
 
-            onCountryDivisionSelect: function(countryDivision) {
-                if(!chartCountryDivisions.includes(countryDivision)) {
-                    chartCountryDivisions = chartCountryDivisions.filter(o => o !== countryDivision);
-                    chartCountryDivisions.push(countryDivision);
+            onCountrySelect: function(country) {
+                if(!chartCountries.includes(country)) {
+                    chartCountries = chartCountries.filter(o => o !== country);
+                    chartCountries.push(country);
                 }
                 this.setChartFacets();
                 this.loadMainData();
             },
 
-            onCountryDivisionRemove: function(countryDivision) {
-                chartCountryDivisions = chartCountryDivisions.filter(o => o !== countryDivision);
+            onCountryRemove: function(country) {
+                chartCountries = chartCountries.filter(o => o !== country);
                 this.resetChartFacets();
                 this.loadMainData();
             },
