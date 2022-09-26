@@ -4,6 +4,7 @@
 
 ### 1. ISCO_1988
 * [Treemap](https://klee016.github.io/GLD_visualization/C1.classification_isco_treemap.html)
+* [Treemap - side by side comparison](https://klee016.github.io/GLD_visualization/C1.classification_isco_treemap_side_by_side_comparison.html)
 
 ### 2. ISIC_4
 * [Treemap](https://klee016.github.io/GLD_visualization/C1.classification_isic_treemap.html) - data error
