@@ -92,7 +92,7 @@
         },
         data: {
             indicatorList: [],
-            selectedIndicator: {code: "A_pop_smp", label: "Population sample"},
+            selectedIndicator: {code: "A_pop_tot", label: "A - Population total"},
             sexList: [],
             selectedSex: 'All',
             regionList: [],
@@ -122,6 +122,7 @@
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=age"),
                                                       dataFetch(APIUrl + "aggregate/central/WLD_2022_GLD-indicators/10000?fields=education")]);
                 this.indicatorList = responseObjs[0].result.result_.features.map(function(o) {return{code: o.feature_name, label: o.feature_label}}); 
+                this.indicatorList.splice(-6, 6);
                 this.indicatorList.splice(0, 7);
                 this.countryList = responseObjs[1].data.map(o => o.country);
                 this.countryList = [...new Set(responseObjs[1].data.map(o => o.country))];
